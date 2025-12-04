@@ -1,2 +1,2 @@
-# UserPortal
-A standalone frontend gateway responsible for user authentication, session handling, and routing users to their appropriate applications or dashboards across a multi-tenant microservice ecosystem.
+# Zyotra - UserPortal
+This service acts as the primary entry point for all users. It provides login, registration, token management, and user routing, ensuring a seamless transition into the platform’s protected dashboards and apps.
