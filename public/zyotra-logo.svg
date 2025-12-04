@@ -1,0 +1,40 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Center circles -->
+  <circle cx="50" cy="50" r="8" fill="#e4b2b3"/>
+  <circle cx="50" cy="50" r="5" fill="#1a1a22"/>
+  <circle cx="50" cy="50" r="2" fill="#e4b2b3"/>
+  
+  <!-- Radiating lines - 16 lines at 22.5 degree intervals -->
+  <!-- 0° -->
+  <line x1="62" y1="50" x2="92" y2="50" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 22.5° -->
+  <line x1="61.07" y1="54.59" x2="79.55" y2="62.24" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 45° -->
+  <line x1="58.49" y1="58.49" x2="79.7" y2="79.7" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 67.5° -->
+  <line x1="54.59" y1="61.07" x2="62.24" y2="79.55" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 90° -->
+  <line x1="50" y1="62" x2="50" y2="92" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 112.5° -->
+  <line x1="45.41" y1="61.07" x2="37.76" y2="79.55" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 135° -->
+  <line x1="41.51" y1="58.49" x2="20.3" y2="79.7" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 157.5° -->
+  <line x1="38.93" y1="54.59" x2="20.45" y2="62.24" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 180° -->
+  <line x1="38" y1="50" x2="8" y2="50" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 202.5° -->
+  <line x1="38.93" y1="45.41" x2="20.45" y2="37.76" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 225° -->
+  <line x1="41.51" y1="41.51" x2="20.3" y2="20.3" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 247.5° -->
+  <line x1="45.41" y1="38.93" x2="37.76" y2="20.45" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 270° -->
+  <line x1="50" y1="38" x2="50" y2="8" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 292.5° -->
+  <line x1="54.59" y1="38.93" x2="62.24" y2="20.45" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 315° -->
+  <line x1="58.49" y1="41.51" x2="79.7" y2="20.3" stroke="#e4b2b3" stroke-width="4" stroke-linecap="round"/>
+  <!-- 337.5° -->
+  <line x1="61.07" y1="45.41" x2="79.55" y2="37.76" stroke="#e4b2b3" stroke-width="3" stroke-linecap="round"/>
+</svg>
