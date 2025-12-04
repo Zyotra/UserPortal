@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import ZyotraLogo from './ZyotraLogo';
@@ -18,8 +18,13 @@ const Login = () => {
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle email login
   };
+  useEffect(() => {
+    const token=localStorage.getItem('accessToken');
+    if(token){
+      window.location.href='/dashboard';
+    }
+  },[])
 
   return (
     <div className="min-h-screen bg-[#16171e] flex items-center justify-center px-4 font-sans">
@@ -99,6 +104,8 @@ const Login = () => {
           <Link to="/register" className="text-[#d4a373] underline hover:text-[#e0b484] text-sm transition-colors">
             Sign up for Zyotra
           </Link>
+           
+            i
         </div>
 
         {/* Footer */}
