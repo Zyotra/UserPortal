@@ -9,6 +9,7 @@ import Deployments from '../components/dashboard/Deployments';
 import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
+import apiClient from '../utils/apiClient';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
@@ -29,13 +30,8 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const userData = await fetch("http://localhost:5050/dashboard", {
+      const userData = await apiClient("http://localhost:5050/dashboard", {
         method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('accessToken')}`
-        }
       });
       const data = await userData.json();
       console.log(data);
