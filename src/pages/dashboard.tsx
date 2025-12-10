@@ -14,7 +14,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
-
+  const [loading, setLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const navItems = [
     'Overview',
     'VPS Machines',
@@ -25,13 +26,40 @@ const Dashboard = () => {
     'Billings',
     'Settings'
   ];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const userData = await fetch("http://localhost:5050/dashboard", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      const data = await userData.json();
+      console.log(data);
+      if (!data.userEmail) {
+        setLoading(false);
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login';
+      }
+      setUserEmail(data.userEmail);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setLoading(false);
+      localStorage.removeItem('accessToken');
+      window.location.href = '/login';
+    }
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       window.location.href = '/login';
     }
-
+    fetchDashboardData()
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
@@ -91,9 +119,9 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             <div className="relative hidden md:flex items-center">
               <FiSearch className="absolute left-3 text-gray-500" />
-              <input 
-                type="text" 
-                placeholder="Find..." 
+              <input
+                type="text"
+                placeholder="Find..."
                 className="bg-[#111] border border-[#333] rounded-md py-1.5 pl-9 pr-12 text-sm focus:outline-none focus:border-gray-500 transition-colors w-64 placeholder-gray-600 text-white"
               />
               <div className="absolute right-2 flex items-center gap-1">
@@ -102,19 +130,19 @@ const Dashboard = () => {
             </div>
             <button className="text-sm border border-[#333] rounded-md px-3 py-1.5 hover:bg-[#111] transition-colors text-gray-300">Feedback</button>
             <button className="text-gray-400 hover:text-white transition-colors"><FiBell className="text-lg" /></button>
-            
+
             {/* Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 cursor-pointer hover:opacity-90 transition-opacity"
               ></button>
-              
+
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-black border border-[#333] rounded-md shadow-xl py-1 z-50">
                   <div className="px-4 py-3 border-b border-[#333]">
-                    <p className="text-sm text-white font-medium">Ramkrishna</p>
-                    <p className="text-xs text-gray-500 truncate">ramkrishna@zyotra.com</p>
+                    <p className="text-sm text-white font-medium">User</p>
+                    <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                   </div>
                   <div className="py-1">
                     <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#111] hover:text-white flex items-center gap-2">
@@ -125,7 +153,7 @@ const Dashboard = () => {
                     </button>
                   </div>
                   <div className="border-t border-[#333] py-1">
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#111] flex items-center gap-2"
                     >
@@ -145,11 +173,10 @@ const Dashboard = () => {
               <button
                 key={item}
                 onClick={() => setActiveTab(item)}
-                className={`py-3 text-sm border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === item 
-                    ? 'text-white border-white' 
-                    : 'text-gray-400 border-transparent hover:text-gray-200'
-                }`}
+                className={`py-3 text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === item
+                  ? 'text-white border-white'
+                  : 'text-gray-400 border-transparent hover:text-gray-200'
+                  }`}
               >
                 {item}
               </button>
