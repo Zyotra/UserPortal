@@ -1,11 +1,27 @@
 import { FiCreditCard, FiDownload, FiCheck } from 'react-icons/fi';
-
+import { useState } from 'react';
 const Billings = () => {
   const invoices = [
     { id: 'inv-001', date: 'Nov 01, 2025', amount: '$20.00', status: 'Paid' },
     { id: 'inv-002', date: 'Oct 01, 2025', amount: '$20.00', status: 'Paid' },
     { id: 'inv-003', date: 'Sep 01, 2025', amount: '$20.00', status: 'Paid' },
   ];
+  const [showBillingDetails, setShowBillingDetails] = useState(false);
+  if(!showBillingDetails) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full space-y-6">
+        <h2 className="text-2xl font-semibold text-white">Manage Your Billing</h2>
+        <p className="text-gray-400 text-center max-w-md">
+          View and manage your subscription plan, payment methods, and invoices all in one place.
+        </p>
+        <button
+          className="bg-white text-black px-6 py-3 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
+        >
+          View Billing Details
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
