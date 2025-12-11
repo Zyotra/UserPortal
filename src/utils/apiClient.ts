@@ -19,9 +19,10 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
 
   // Handle 419 Token Expiry
   if (response.status === 419) {
+    console.log("reponse 419 - attempting token refresh");
     try {
       const refreshResponse = await fetch("http://localhost:5050/get-access-token", {
-        method: "POST",
+        method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" }
       });

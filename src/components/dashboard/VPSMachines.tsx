@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { FiServer, FiMoreHorizontal, FiCpu, FiActivity } from 'react-icons/fi';
+import apiClient from '../../utils/apiClient';
 
 const VPSMachines = () => {
   const machines = [
@@ -47,6 +49,16 @@ const VPSMachines = () => {
       uptime: '2d 5h'
     }
   ];
+  const fetchMachines = async () => {
+    const res=await apiClient("http://localhost:5050/vps-machines",{
+      method:"GET",
+    });
+    const data=await res.json();
+    console.log(data);
+  }
+  useEffect(()=>{
+    fetchMachines();
+  },[])
 
   return (
     <div className="space-y-6">
