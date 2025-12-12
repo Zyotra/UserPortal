@@ -28,7 +28,9 @@ const Projects = () => {
       });
       const data = await res.json();
       if (data.data) {
-        setProjects(data.data);
+        // Filter only successful projects
+        const successfulProjects = data.data.filter((project: Project) => project.status === 'SUCCESS');
+        setProjects(successfulProjects);
       }
     } catch (error) {
       console.error("Error fetching projects:", error);

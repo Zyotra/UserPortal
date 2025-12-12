@@ -9,9 +9,10 @@ interface MachineType{
   id:string,
   vps_ip:string,
   vps_name:string,
-  vps_region?:string,
-  vps_cpu?:string,
-  vps_ram?:string,
+  region?:string,
+  cpu_cores?:string,
+  ram?:string,
+  storage?:string,
   vps_status?:string,
 }
 
@@ -105,6 +106,7 @@ const VPSMachines = () => {
                 <th className="px-6 py-3 font-medium">IP Address</th>
                 <th className="px-6 py-3 font-medium">Region</th>
                 <th className="px-6 py-3 font-medium">Specs</th>
+                <th className="px-6 py-3 font-medium">Storage</th>
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -118,27 +120,30 @@ const VPSMachines = () => {
                       </div>
                       <div>
                         <div className="font-medium text-white">{machine.vps_name}</div>
-                        <div className="text-xs text-gray-500">{machine.vps_cpu} uptime</div>
+                        <div className="text-xs text-gray-500">{machine.cpu_cores} uptime</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${machine.vps_status === 'Running' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                      <span className={machine.vps_status === 'Running' ? 'text-green-500' : 'text-gray-500'}>{machine.vps_status}</span>
+                      <div className={`w-2 h-2 rounded-full ${machine.vps_status === 'Running' ? 'bg-green-500' : 'bg-green-500'}`}></div>
+                      <span className={machine.vps_status === 'Running' ? 'text-green-500' : 'text-green-500'}>{machine.vps_status || "running"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 font-mono text-xs text-gray-300">
                     {machine.vps_ip}
                   </td>
                   <td className="px-6 py-4">
-                    {machine.vps_region}
+                    {machine.region || "us-east-1"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4 text-xs">
-                      <span className="flex items-center gap-1"><FiCpu /> {machine.vps_cpu}</span>
-                      <span className="flex items-center gap-1"><FiActivity /> {machine.vps_ram}</span>
+                      <span className="flex items-center gap-1"><FiCpu /> {machine.cpu_cores}</span>
+                      <span className="flex items-center gap-1"><FiActivity /> {machine.ram+"GB"}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {machine.storage+"GB"}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 

@@ -6,7 +6,6 @@ import VPSMachines from '../components/dashboard/VPSMachines';
 import Projects from '../components/dashboard/Projects';
 import Domains from '../components/dashboard/Domains';
 import Deployments from '../components/dashboard/Deployments';
-import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
 import apiClient from '../utils/apiClient';
@@ -22,7 +21,6 @@ const Dashboard = () => {
     'VPS Machines',
     'Projects',
     'Domains',
-    'Deployments',
     'Activity',
     'Billings',
     'Settings'
@@ -83,10 +81,8 @@ const Dashboard = () => {
         return <Projects />;
       case 'Domains':
         return <Domains />;
-      case 'Deployments':
-        return <Deployments />;
       case 'Activity':
-        return <Activity />;
+        return <Deployments />;
       case 'Billings':
         return <Billings />;
       case 'Settings':

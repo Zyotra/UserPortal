@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
-
 const AddProject = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,6 +11,7 @@ const AddProject = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [deploymentStatus, setDeploymentStatus] = useState<'idle' | 'deploying' | 'success' | 'failed'>('idle');
   const terminalEndRef = useRef<HTMLDivElement>(null);
+  const [availableDomains, setAvailableDomains] = useState<{ domain_address: string; id: number }[]>([]);
 
   const machineId = location.state?.vpsId || '';
   
@@ -64,6 +64,29 @@ const AddProject = () => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs, showTerminal]);
 
+  // Fetch available domains with pending deployment status
+  useEffect(() => {
+    const fetchDomains = async () => {
+      try {
+        const res = await apiClient('http://localhost:5051/get-domains', {
+          method: 'GET',
+        });
+        const data = await res.json();
+        console.log('Fetched domains:', data);
+        if (data.data) {
+          // Filter only pending deployment domains
+          const pendingDomains = data.data.filter((d: any) => d.isDeployed == '0');
+          console.log("Pending domains:", pendingDomains)
+          setAvailableDomains(pendingDomains);
+        }
+      } catch (error) {
+        console.error('Error fetching domains:', error);
+      }
+    };
+    
+    fetchDomains();
+  }, []);
+
   console.log("Machine ID from state:", machineId);
   useEffect(() => {
     if (location.state?.vpsId) {
@@ -71,7 +94,10 @@ const AddProject = () => {
     }
   }, [location.state]);
 
-  const [envVars, setEnvVars] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
+  const [envVars, setEnvVars] = useState<{ key: string; value: string; required?: boolean }[]>([
+    { key: 'PORT', value: '', required: true },
+    { key: '', value: '' }
+  ]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -89,6 +115,8 @@ const AddProject = () => {
   };
 
   const removeEnvVar = (index: number) => {
+    // Prevent removing required env vars
+    if (envVars[index].required) return;
     const newEnvVars = envVars.filter((_, i) => i !== index);
     setEnvVars(newEnvVars);
   };
@@ -331,35 +359,35 @@ const AddProject = () => {
               <FiServer className="text-gray-400" /> Deployment Configuration
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                  <FiCpu /> VPS ID
+                  <FiGlobe /> Domain <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="vpsId"
-                  value={formData.vpsId}
-                  disabled={true}
-                  onChange={handleInputChange}
-                  placeholder="vps-123456"
-                  className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                  <FiGlobe /> Domain
-                </label>
-                <input
-                  type="text"
-                  name="domain"
-                  value={formData.domain}
-                  onChange={handleInputChange}
-                  placeholder="example.com"
-                  className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
-                />
+                <div className="relative">
+                  <select
+                    name="domain"
+                    value={formData.domain}
+                    onChange={handleInputChange}
+                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white appearance-none"
+                    required
+                  >
+                    <option value="">Select a domain...</option>
+                    {availableDomains.map((domain) => (
+                      <option key={domain.id} value={domain.domain_address}>
+                        {domain.domain_address}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    <FiChevronDown />
+                  </div>
+                </div>
+                {availableDomains.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    No domains available for deployment. Please add a domain first.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -381,23 +409,27 @@ const AddProject = () => {
                       placeholder="KEY"
                       value={env.key}
                       onChange={(e) => handleEnvChange(index, 'key', e.target.value)}
-                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
+                      disabled={env.required}
+                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+                      required={env.required}
                     />
                   </div>
                   <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="VALUE"
+                      placeholder={env.required ? "VALUE (Required)" : "VALUE"}
                       value={env.value}
                       onChange={(e) => handleEnvChange(index, 'value', e.target.value)}
                       className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
+                      required={env.required}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => removeEnvVar(index)}
-                    className="p-3 text-gray-500 hover:text-red-500 transition-colors"
-                    disabled={envVars.length === 1 && !envVars[0].key && !envVars[0].value}
+                    className={`p-3 transition-colors ${env.required ? 'text-gray-700 cursor-not-allowed' : 'text-gray-500 hover:text-red-500'}`}
+                    disabled={env.required}
+                    title={env.required ? 'This variable is required' : 'Remove variable'}
                   >
                     <FiTrash2 />
                   </button>
