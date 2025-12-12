@@ -1,74 +1,79 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
+import apiClient from '../../utils/apiClient';
+
+interface Project {
+  id: number;
+  vpsIp: string;
+  ownerId: number;
+  repoUrl: string;
+  domain: string;
+  logs: string;
+  deploymentId: string;
+  status: string;
+  createdAt: string;
+}
 
 const Overview = () => {
   const navigate = useNavigate();
   const [showMachineSelector, setShowMachineSelector] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const handleMachineSelect = (machine: any) => {
     setShowMachineSelector(false);
     navigate('/new-project', { state: { vpsId: machine.id } });
   };
 
-  const projects = [
-    {
-      name: 'chat-connect',
-      url: 'chat-connect-blush.vercel.app',
-      repo: 'imramkrishna/Chat-Connect',
-      lastCommit: 'updated chat manager to have user search',
-      time: 'Nov 26',
-      branch: 'main',
-      icon: '⚡'
-    },
-    {
-      name: 'crm-system',
-      url: 'crm-system-drab.vercel.app',
-      repo: 'imramkrishna/MedCRM',
-      lastCommit: 'updated admin orders section for solving edit order collapse is...',
-      time: 'Nov 16',
-      branch: 'main',
-      icon: '▲'
-    },
-    {
-      name: 'chess-online',
-      url: 'chess-online-five.vercel.app',
-      repo: 'imramkrishna/ChessOnline',
-      lastCommit: 'updated frontend colors',
-      time: 'Nov 15',
-      branch: 'main',
-      icon: '♟️'
-    },
-    {
-      name: 'portfolio-rkrishna',
-      url: 'www.ramkrishnacode.tech',
-      repo: 'imramkrishna/ramkrishnacode',
-      lastCommit: 'fixed image collapse issue',
-      time: 'Nov 15',
-      branch: 'main',
-      icon: '⚡'
-    },
-    {
-      name: 'x-code-gen',
-      url: 'x-code-gen.vercel.app',
-      repo: 'imramkrishna/XCodeGen',
-      lastCommit: 'updated backend for rate limit issue',
-      time: 'Nov 14',
-      branch: 'main',
-      icon: '✖️'
-    },
-    {
-      name: 'warehouse-management-system',
-      url: 'warehouse-management-system-lovat.ve...',
-      repo: 'imramkrishna/WarehouseM...',
-      lastCommit: 'updated backend - removed prisma from the db',
-      time: 'Nov 9',
-      branch: 'main',
-      icon: '📦'
+  async function fetchProjects() {
+    try {
+      const res = await apiClient("http://localhost:5053/get-projects", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.data) {
+        setProjects(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
     }
-  ];
+  }
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const getRepoName = (repoUrl: string) => {
+    try {
+      const match = repoUrl.match(/github\.com\/(.+?)\.git$/);
+      return match ? match[1] : repoUrl;
+    } catch {
+      return repoUrl;
+    }
+  };
+
+  const getProjectName = (domain: string) => {
+    return domain.split('.')[0];
+  };
+
+  const getProjectIcon = (index: number) => {
+    const icons = ['⚡', '▲', '♟️', '🚀', '✖️', '📦', '🎯', '💎', '🔥', '⭐'];
+    return icons[index % icons.length];
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   return (
     <div className="space-y-8">
@@ -183,53 +188,63 @@ const Overview = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {projects.map((project) => (
-              <div key={project.name} className="group relative border border-[#333] rounded-2xl p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
-                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors">
-                        <FiMoreHorizontal />
-                    </button>
-                </div>
-
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#222] to-[#111] border border-[#333] flex items-center justify-center text-2xl text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
-                    {project.icon}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-base text-white mb-1 group-hover:text-white transition-colors">
-                      {project.name}
-                    </h4>
-                    <a href={`https://${project.url}`} className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1">
-                      {project.url} <FiExternalLink className="inline w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-3 rounded-xl bg-[#111] border border-[#222]">
-                    <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
-                        <GoGitBranch className="text-gray-500" />
-                        <span className="font-mono">{project.branch}</span>
-                        <span className="text-gray-600 mx-1">•</span>
-                        <span className="text-gray-500">{project.time}</span>
-                    </div>
-                    <div className="text-xs text-gray-400 truncate font-medium">
-                        {project.lastCommit}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 hover:text-white transition-colors cursor-pointer">
-                        <FiGithub />
-                        <span>{project.repo}</span>
-                    </div>
-                    <div className="flex gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                    </div>
-                  </div>
-                </div>
+            {projects.length === 0 ? (
+              <div className="col-span-2 text-center py-12 text-gray-500">
+                No projects yet. Deploy your first project!
               </div>
-            ))}
+            ) : (
+              projects.map((project, index) => (
+                <div key={project.id} className="group relative border border-[#333] rounded-2xl p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
+                  <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors">
+                          <FiMoreHorizontal />
+                      </button>
+                  </div>
+
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#222] to-[#111] border border-[#333] flex items-center justify-center text-2xl text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
+                      {getProjectIcon(index)}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-base text-white mb-1 group-hover:text-white transition-colors">
+                        {getProjectName(project.domain)}
+                      </h4>
+                      <a href={`https://${project.domain}`} className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1">
+                        {project.domain} <FiExternalLink className="inline w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-xl bg-[#111] border border-[#222]">
+                      <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
+                          <GoGitBranch className="text-gray-500" />
+                          <span className="font-mono">main</span>
+                          <span className="text-gray-600 mx-1">•</span>
+                          <span className="text-gray-500">{formatDate(project.createdAt)}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 truncate font-medium">
+                          {project.logs}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 hover:text-white transition-colors cursor-pointer">
+                          <FiGithub />
+                          <span className="truncate">{getRepoName(project.repoUrl)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            project.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' :
+                            project.status === 'BUILDING' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)] animate-pulse' :
+                            'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
+                          }`}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

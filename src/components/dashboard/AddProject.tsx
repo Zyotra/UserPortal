@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
 
@@ -8,12 +8,22 @@ const AddProject = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [showTerminal, setShowTerminal] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [deploymentStatus, setDeploymentStatus] = useState<'idle' | 'deploying' | 'success' | 'failed'>('idle');
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+
   const machineId = location.state?.vpsId || '';
-  if (!machineId) {
-    console.log("redirecting to dashboard");
-    navigate('/dashboard');
-  }
-  const { socket, messages } = useSocket(machineId) as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string } };
+  
+  useEffect(() => {
+    if (!machineId) {
+      console.log("redirecting to dashboard");
+      navigate('/dashboard');
+    }
+  }, [machineId, navigate]);
+
+  const { socket, messages } = useSocket(machineId) as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string; log?: string; status?: string } };
+  
   const [formData, setFormData] = useState({
     vpsId: machineId,
     repoUrl: '',
@@ -25,11 +35,34 @@ const AddProject = () => {
     webServiceType: 'static', // static, nodejs, docker, etc.
   });
 
+  // Handle incoming socket messages
   useEffect(() => {
-    if (messages?.deploymentId) {
-      setFormData(prev => ({ ...prev, deploymentId: messages.deploymentId || '' }));
+    if (messages) {
+      if (messages.deploymentId && !formData.deploymentId) {
+        setFormData(prev => ({ ...prev, deploymentId: messages.deploymentId || '' }));
+      }
+      
+      if (messages.message || messages.log) {
+        setLogs(prev => [...prev, (messages.message || messages.log)!]);
+      }
+
+      // Check for completion status if your socket sends it
+      if (messages.status === 'completed' || messages.message?.includes('Deployment successful') || messages.log?.includes('Deployment successful')) {
+        setDeploymentStatus('success');
+        setLoading(false);
+        if (socket) socket.close();
+      } else if (messages.status === 'failed' || messages.message?.includes('Deployment failed') || messages.log?.includes('Deployment failed')) {
+        setDeploymentStatus('failed');
+        setLoading(false);
+        if (socket) socket.close();
+      }
     }
-  }, [messages]);
+  }, [messages, formData.deploymentId, socket]);
+
+  // Auto-scroll terminal
+  useEffect(() => {
+    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs, showTerminal]);
 
   console.log("Machine ID from state:", machineId);
   useEffect(() => {
@@ -63,6 +96,9 @@ const AddProject = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowTerminal(true);
+    setDeploymentStatus('deploying');
+    setLogs(['Initializing deployment...', 'Connecting to build server...']);
 
     const env: Record<string, string> = {};
     envVars.forEach(({ key, value }) => {
@@ -75,26 +111,104 @@ const AddProject = () => {
     };
 
     try {
-      // Replace with your actual API endpoint
-      const response = await apiClient('http://localhost:5050/projects/create', {
+      // Updated endpoint to port 5053
+      const response = await apiClient('http://localhost:5053/deploy-webservice', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        navigate('/dashboard');
+        // The socket will handle the logs and completion status
+        // We just wait here or handle the immediate response if it contains final status
+        if (data.status === 'success') {
+             setDeploymentStatus('success');
+             setLoading(false);
+             if(socket) socket.close();
+        }
       } else {
-        console.error('Failed to create project');
+        console.error('Failed to initiate deployment');
+        setLogs(prev => [...prev, `Error: ${data.message || 'Failed to start deployment'}`]);
+        setDeploymentStatus('failed');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error creating project:', error);
-    } finally {
+      setLogs(prev => [...prev, `Error: ${error instanceof Error ? error.message : 'Unknown error'}`]);
+      setDeploymentStatus('failed');
       setLoading(false);
     }
   };
-  useEffect(()=>{
+  // Terminal Overlay Component
+  if (showTerminal) {
+    return (
+      <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12 flex flex-col">
+        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold flex items-center gap-3">
+              <FiTerminal className="text-blue-500" /> 
+              Deployment Console
+            </h1>
+            <div className="flex items-center gap-3">
+              {deploymentStatus === 'deploying' && (
+                <span className="flex items-center gap-2 text-yellow-500 text-sm font-mono animate-pulse">
+                  <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                  Building...
+                </span>
+              )}
+              {deploymentStatus === 'success' && (
+                <span className="flex items-center gap-2 text-green-500 text-sm font-bold">
+                  <FiCheckCircle /> Deployed
+                </span>
+              )}
+              {deploymentStatus === 'failed' && (
+                <span className="flex items-center gap-2 text-red-500 text-sm font-bold">
+                  <FiXCircle /> Failed
+                </span>
+              )}
+            </div>
+          </div>
 
-  })
+          <div className="flex-1 bg-[#0a0a0a] border border-[#333] rounded-xl p-6 font-mono text-sm overflow-hidden flex flex-col shadow-2xl">
+            <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
+              {logs.map((log, index) => (
+                <div key={index} className="break-all text-gray-300 border-l-2 border-transparent hover:border-[#333] pl-2">
+                  <span className="text-gray-600 mr-3 select-none">$</span>
+                  {log}
+                </div>
+              ))}
+              <div ref={terminalEndRef} />
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end gap-4">
+            {deploymentStatus === 'success' && (
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="bg-white text-black px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            )}
+            {deploymentStatus === 'failed' && (
+              <button 
+                onClick={() => {
+                  setShowTerminal(false);
+                  setLogs([]);
+                  setDeploymentStatus('idle');
+                }}
+                className="bg-[#333] text-white px-6 py-2 rounded-lg font-bold hover:bg-[#444] transition-colors"
+              >
+                Close & Edit
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12">
       <div className="max-w-4xl mx-auto">

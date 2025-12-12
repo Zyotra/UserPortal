@@ -1,69 +1,122 @@
-import { FiGithub, FiExternalLink, FiMoreHorizontal, FiSearch, FiPlus } from 'react-icons/fi';
-import { GoGitBranch } from 'react-icons/go';
+import { useEffect, useState } from 'react';
+import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
+import apiClient from '../../utils/apiClient';
+import ConfirmationModal from './ConfirmationModal';
+
+interface Project {
+  id: number;
+  vpsIp: string;
+  ownerId: number;
+  repoUrl: string;
+  domain: string;
+  logs: string;
+  deploymentId: string;
+  status: string;
+  createdAt: string;
+}
 
 const Projects = () => {
-  const projects = [
-    {
-      id: 'p1',
-      name: 'chat-connect',
-      framework: 'Next.js',
-      url: 'chat-connect-blush.vercel.app',
-      repo: 'imramkrishna/Chat-Connect',
-      lastCommit: 'updated chat manager to have user search',
-      time: '2h ago',
-      branch: 'main',
-      status: 'Ready',
-      environment: 'Production'
-    },
-    {
-      id: 'p2',
-      name: 'crm-system',
-      framework: 'React',
-      url: 'crm-system-drab.vercel.app',
-      repo: 'imramkrishna/MedCRM',
-      lastCommit: 'updated admin orders section',
-      time: '5h ago',
-      branch: 'main',
-      status: 'Ready',
-      environment: 'Production'
-    },
-    {
-      id: 'p3',
-      name: 'chess-online',
-      framework: 'Vue.js',
-      url: 'chess-online-five.vercel.app',
-      repo: 'imramkrishna/ChessOnline',
-      lastCommit: 'updated frontend colors',
-      time: '1d ago',
-      branch: 'main',
-      status: 'Building',
-      environment: 'Preview'
-    },
-    {
-      id: 'p4',
-      name: 'portfolio-rkrishna',
-      framework: 'Next.js',
-      url: 'www.ramkrishnacode.tech',
-      repo: 'imramkrishna/ramkrishnacode',
-      lastCommit: 'fixed image collapse issue',
-      time: '2d ago',
-      branch: 'main',
-      status: 'Ready',
-      environment: 'Production'
-    },
-    {
-      id: 'p5',
-      name: 'x-code-gen',
-      framework: 'Node.js',
-      url: 'x-code-gen.vercel.app',
-      repo: 'imramkrishna/XCodeGen',
-      lastCommit: 'updated backend for rate limit issue',
-      time: '3d ago',
-      branch: 'main',
-      status: 'Error',
-      environment: 'Production'
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: number; domain: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  async function fetchProjects() {
+    try {
+      const res = await apiClient("http://localhost:5053/get-projects", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.data) {
+        setProjects(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
     }
-  ];
+  }
+
+  const confirmDelete = (id: number, domain: string) => {
+    setProjectToDelete({ id, domain });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!projectToDelete) return;
+    
+    try {
+      const res = await apiClient(`http://localhost:5053/delete-project/${projectToDelete.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setProjects(projects.filter(p => p.id !== projectToDelete.id));
+        setIsDeleteModalOpen(false);
+        setProjectToDelete(null);
+      } else {
+        console.error('Failed to delete project');
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'SUCCESS': return 'bg-teal-500';
+      case 'BUILDING': return 'bg-blue-500';
+      case 'PENDING': return 'bg-yellow-500';
+      case 'FAILED': 
+      case 'ERROR': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'SUCCESS': return <FiCheckCircle />;
+      case 'BUILDING': return <FiLoader className="animate-spin" />;
+      case 'FAILED': 
+      case 'ERROR': return <FiAlertCircle />;
+      default: return <FiLoader />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    return status?.charAt(0).toUpperCase() + status?.slice(1).toLowerCase() || 'Unknown';
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getRepoName = (repoUrl: string) => {
+    try {
+      const match = repoUrl.match(/github\.com\/(.+?)\.git$/);
+      return match ? match[1] : repoUrl;
+    } catch {
+      return repoUrl;
+    }
+  };
+
+  const filteredProjects = projects.filter(project => 
+    project.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    project.repoUrl.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    project.vpsIp.includes(searchQuery)
+  );
 
   return (
     <div className="space-y-6">
@@ -73,58 +126,121 @@ const Projects = () => {
           <input 
             type="text" 
             placeholder="Search Projects..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-black border border-[#333] rounded-md py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-white transition-colors placeholder-gray-600 text-white"
           />
         </div>
-        <button className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2">
-          <FiPlus /> New Project
-        </button>
       </div>
 
-      <div className="space-y-4">
-        {projects.map((project) => (
-          <div key={project.id} className="border border-[#333] rounded-lg p-6 bg-black hover:border-gray-500 transition-colors group">
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#222] to-[#111] border border-[#333] flex items-center justify-center text-2xl font-bold text-white">
-                  {project.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-semibold text-white text-lg">{project.name}</h3>
-                    <span className="text-xs bg-[#222] text-gray-300 px-2 py-0.5 rounded border border-[#333]">{project.framework}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-400">
-                    <a href={`https://${project.url}`} target="_blank" rel="noreferrer" className="hover:text-white hover:underline flex items-center gap-1">
-                      {project.url} <FiExternalLink className="text-xs" />
-                    </a>
-                    <span className="flex items-center gap-1">
-                      <FiGithub /> {project.repo}
-                    </span>
-                  </div>
-                </div>
-              </div>
+      {filteredProjects.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          {searchQuery ? 'No projects found matching your search.' : 'No projects yet. Deploy your first project!'}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {filteredProjects.map((project) => (
+            <div key={project.id} className="border border-[#333] rounded-lg bg-black hover:border-gray-400 transition-all duration-200 group overflow-hidden">
+              <div className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  {/* Left Section - Domain & Status */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-4">
+                      {/* Status Indicator */}
+                      <div className="flex-shrink-0 mt-1">
+                        <div className={`w-10 h-10 rounded-lg ${getStatusColor(project.status)} bg-opacity-10 border border-current flex items-center justify-center text-lg`}>
+                          {getStatusIcon(project.status)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        {/* Domain */}
+                        <div className="flex items-center gap-3 mb-2">
+                          <a 
+                            href={`https://${project.domain}`} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-lg font-semibold text-white hover:text-gray-300 transition-colors flex items-center gap-2 group/link"
+                          >
+                            <span className="truncate">{project.domain}</span>
+                            <FiExternalLink className="text-sm flex-shrink-0 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                          </a>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${getStatusColor(project.status)} ${project.status === 'BUILDING' ? 'animate-pulse' : ''}`} />
+                            <span className="text-xs font-medium text-gray-400">{getStatusText(project.status)}</span>
+                          </div>
+                        </div>
 
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${
-                    project.status === 'Ready' ? 'bg-green-500' : 
-                    project.status === 'Building' ? 'bg-blue-500 animate-pulse' : 
-                    'bg-red-500'
-                  }`}></span>
-                  <span className="text-sm font-medium text-gray-200">{project.status}</span>
-                  <span className="text-xs text-gray-500 ml-2">{project.time}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <GoGitBranch /> {project.branch}
-                  <span className="w-1 h-1 rounded-full bg-gray-600"></span>
-                  <span className="truncate max-w-[200px]">{project.lastCommit}</span>
+                        {/* Repository */}
+                        <div className="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                          <FiGithub className="flex-shrink-0" />
+                          <a 
+                            href={project.repoUrl.replace('.git', '')} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="hover:text-white transition-colors truncate font-mono"
+                          >
+                            {getRepoName(project.repoUrl)}
+                          </a>
+                        </div>
+
+                        {/* Logs */}
+                        <div className="bg-[#0a0a0a] border border-[#222] rounded-md p-3 mb-3">
+                          <p className="text-xs font-mono text-gray-400 leading-relaxed">
+                            {project.logs}
+                          </p>
+                        </div>
+
+                        {/* Bottom Info */}
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <FiServer className="flex-shrink-0" />
+                            <span className="font-mono">{project.vpsIp}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-[#111] border border-[#333] px-2 py-0.5 rounded font-mono">
+                              {project.deploymentId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <FiClock className="flex-shrink-0" />
+                            <span>{formatDate(project.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Section - Actions */}
+                  <div className="flex items-center gap-2 lg:flex-col lg:items-end">
+                    <button 
+                      onClick={() => confirmDelete(project.id, project.domain)}
+                      className="px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all text-sm flex items-center gap-2 border border-[#333] hover:border-red-500/50"
+                      title="Delete Deployment"
+                    >
+                      <FiTrash2 size={14} />
+                      <span className="hidden sm:inline">Delete</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setProjectToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Deployment"
+        message={`Are you sure you want to delete the deployment for "${projectToDelete?.domain}"? This action cannot be undone and will permanently remove this deployment.`}
+        confirmText="Delete Deployment"
+        isDangerous={true}
+      />
     </div>
   );
 };
