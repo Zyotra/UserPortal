@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { FiServer, FiMoreHorizontal, FiCpu, FiActivity, FiTrash2 } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import apiClient from '../../utils/apiClient';
+import ConfirmationModal from './ConfirmationModal';
+import AddMachineModal from './AddMachineModal';
 
 interface MachineType{
   id:string,
@@ -15,6 +17,8 @@ interface MachineType{
 
 const VPSMachines = () => {
   const [machines, setMachines] = useState<MachineType[]>([])
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchMachines = async () => {
     try {
@@ -35,12 +39,34 @@ const VPSMachines = () => {
     fetchMachines();
   },[])
 
-  const handleDeleteMachine = async (machineId: string) => {
-    if (!confirm("Are you sure you want to delete this machine?")) return;
+  const handleAddMachine = async (machineData: any) => {
+    const loadingToast = toast.loading("Adding machine...");
+    try {
+      const res = await apiClient("http://localhost:5051/add-machine", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(machineData),
+      });
+
+      if (!res.ok) throw new Error("Failed to add machine");
+
+      toast.success("Machine added successfully", { id: loadingToast });
+      setShowAddModal(false);
+      fetchMachines(); // Refresh list
+    } catch (error) {
+      console.error("Error adding machine:", error);
+      toast.error("Failed to add machine", { id: loadingToast });
+    }
+  };
+
+  const confirmDeleteMachine = async () => {
+    if (!deleteId) return;
 
     const loadingToast = toast.loading("Deleting machine...");
     try {
-      const res = await apiClient(`http://localhost:5051/delete-machine/${machineId}`, {
+      const res = await apiClient(`http://localhost:5051/delete-machine/${deleteId}`, {
         method: "DELETE",
       });
 
@@ -51,6 +77,8 @@ const VPSMachines = () => {
     } catch (error) {
       console.error("Error deleting machine:", error);
       toast.error("Failed to delete machine", { id: loadingToast });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -59,8 +87,11 @@ const VPSMachines = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">VPS Machines</h2>
-        <button className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
-          Create Instance
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
+        >
+          Add New Machine
         </button>
       </div>
 
@@ -111,7 +142,7 @@ const VPSMachines = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 
-                      onClick={() => handleDeleteMachine(machine.id)}
+                      onClick={() => setDeleteId(machine.id)}
                       className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-red-500 transition-colors"
                       title="Delete Machine"
                     >
@@ -124,6 +155,23 @@ const VPSMachines = () => {
           </table>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDeleteMachine}
+        title="Delete Machine"
+        message="Are you sure you want to delete this machine? This action cannot be undone and all data on the VPS will be lost."
+        confirmText="Delete"
+        isDangerous={true}
+      />
+
+      {showAddModal && (
+        <AddMachineModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddMachine}
+        />
+      )}
     </div>
   );
 };

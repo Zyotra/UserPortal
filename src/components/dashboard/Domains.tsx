@@ -3,6 +3,7 @@ import { FiGlobe, FiMoreHorizontal, FiCheckCircle, FiAlertCircle, FiTrash2 } fro
 import { FaPlus } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import AddDomainModal from './AddDomainModal';
+import ConfirmationModal from './ConfirmationModal';
 import apiClient from '../../utils/apiClient';
 
 interface Domain {
@@ -17,6 +18,7 @@ const Domains = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const fetchDomains = async () => {
     try {
@@ -62,12 +64,12 @@ const Domains = () => {
     }
   };
 
-  const handleDeleteDomain = async (domainId: string) => {
-    if (!confirm("Are you sure you want to remove this domain?")) return;
+  const confirmDeleteDomain = async () => {
+    if (!deleteId) return;
 
     const loadingToast = toast.loading("Removing domain...");
     try {
-      const res = await apiClient(`http://localhost:5051/delete-domain/${domainId}`, {
+      const res = await apiClient(`http://localhost:5051/delete-domain/${deleteId}`, {
         method: "DELETE",
       });
 
@@ -78,6 +80,8 @@ const Domains = () => {
     } catch (error) {
       console.error("Error removing domain:", error);
       toast.error("Failed to remove domain", { id: loadingToast });
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -99,6 +103,7 @@ const Domains = () => {
             <tr>
               <th className="px-6 py-3 font-medium">Domain</th>
               <th className="px-6 py-3 font-medium">Status</th>
+              <th className="px-6 py-3 font-medium">Linked VPS</th>
               <th className="px-6 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
@@ -125,9 +130,16 @@ const Domains = () => {
                     </span>
                   </div>
                 </td>
+                <td className="px-6 py-4">
+                  <span className="font-mono text-gray-300">{domain.vps_ip}</span>
+                </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors">
-                    <FiMoreHorizontal />
+                  <button 
+                    onClick={() => setDeleteId(domain.id)}
+                    className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-red-500 transition-colors"
+                    title="Delete Domain"
+                  >
+                    <FiTrash2 />
                   </button>
                 </td>
               </tr>
@@ -142,6 +154,16 @@ const Domains = () => {
           onAdd={handleAddDomain} 
         />
       )}
+
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDeleteDomain}
+        title="Remove Domain"
+        message="Are you sure you want to remove this domain? This action cannot be undone and will disconnect the domain from your VPS."
+        confirmText="Remove"
+        isDangerous={true}
+      />
     </div>
   );
 };
