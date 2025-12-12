@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FiServer, FiMoreHorizontal, FiCpu, FiActivity } from 'react-icons/fi';
+import { FiServer, FiMoreHorizontal, FiCpu, FiActivity, FiTrash2 } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import apiClient from '../../utils/apiClient';
+
 interface MachineType{
   id:string,
   vps_ip:string,
@@ -10,19 +12,48 @@ interface MachineType{
   vps_ram?:string,
   vps_status?:string,
 }
+
 const VPSMachines = () => {
   const [machines, setMachines] = useState<MachineType[]>([])
+
   const fetchMachines = async () => {
-    const res=await apiClient("http://localhost:5051/get-machines",{
-      method:"GET",
-    });
-    const data=await res.json();
-    console.log(data);
-    setMachines(data.data);
+    try {
+      const res = await apiClient("http://localhost:5051/get-machines", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.data) {
+        setMachines(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+      toast.error("Failed to fetch machines");
+    }
   }
+
   useEffect(()=>{
     fetchMachines();
   },[])
+
+  const handleDeleteMachine = async (machineId: string) => {
+    if (!confirm("Are you sure you want to delete this machine?")) return;
+
+    const loadingToast = toast.loading("Deleting machine...");
+    try {
+      const res = await apiClient(`http://localhost:5051/delete-machine/${machineId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete machine");
+
+      toast.success("Machine deleted successfully", { id: loadingToast });
+      fetchMachines(); // Refresh list
+    } catch (error) {
+      console.error("Error deleting machine:", error);
+      toast.error("Failed to delete machine", { id: loadingToast });
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -79,8 +110,12 @@ const VPSMachines = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors">
-                      <FiMoreHorizontal />
+                    <button 
+                      onClick={() => handleDeleteMachine(machine.id)}
+                      className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-red-500 transition-colors"
+                      title="Delete Machine"
+                    >
+                      <FiTrash2 />
                     </button>
                   </td>
                 </tr>

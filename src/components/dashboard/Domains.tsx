@@ -1,51 +1,95 @@
-import { FiGlobe, FiMoreHorizontal, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { FiGlobe, FiMoreHorizontal, FiCheckCircle, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
+import { FaPlus } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
+import AddDomainModal from './AddDomainModal';
+import apiClient from '../../utils/apiClient';
+
+interface Domain {
+  id: string;
+  domain_address: string;
+  vps_ip: string;
+  added_at: string;
+  isDeployed: boolean;
+}
 
 const Domains = () => {
-  const domains = [
-    {
-      id: 'd1',
-      name: 'ramkrishnacode.tech',
-      status: 'Active',
-      expires: 'Nov 15, 2026',
-      autoRenewal: true,
-      nameservers: 'Vercel',
-      project: 'portfolio-rkrishna'
-    },
-    {
-      id: 'd2',
-      name: 'zyotra.com',
-      status: 'Active',
-      expires: 'Dec 01, 2025',
-      autoRenewal: true,
-      nameservers: 'Cloudflare',
-      project: 'zyotra-main'
-    },
-    {
-      id: 'd3',
-      name: 'chat-connect.io',
-      status: 'Expiring Soon',
-      expires: 'Jan 10, 2026',
-      autoRenewal: false,
-      nameservers: 'Vercel',
-      project: 'chat-connect'
-    },
-    {
-      id: 'd4',
-      name: 'medcrm.org',
-      status: 'Active',
-      expires: 'Mar 22, 2026',
-      autoRenewal: true,
-      nameservers: 'Vercel',
-      project: 'crm-system'
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [domains, setDomains] = useState<Domain[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDomains = async () => {
+    try {
+      const res = await apiClient("http://localhost:5051/get-domains", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.data) {
+         setDomains(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+      toast.error("Failed to fetch domains");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchDomains();
+  }, []);
+
+  const handleAddDomain = async (domain: string, machineIp: string) => {
+    const loadingToast = toast.loading("Adding domain...");
+    try {
+      const res = await apiClient("http://localhost:5051/add-domain", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ domainAddress: domain, vpsIp: machineIp }),
+      });
+      
+      if (!res.ok) throw new Error("Failed to add domain");
+      
+      const data = await res.json();
+      toast.success("Domain added successfully", { id: loadingToast });
+      setShowAddModal(false);
+      fetchDomains(); // Refresh list
+    } catch (error) {
+      console.error("Error adding domain:", error);
+      toast.error("Failed to add domain", { id: loadingToast });
+    }
+  };
+
+  const handleDeleteDomain = async (domainId: string) => {
+    if (!confirm("Are you sure you want to remove this domain?")) return;
+
+    const loadingToast = toast.loading("Removing domain...");
+    try {
+      const res = await apiClient(`http://localhost:5051/delete-domain/${domainId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to remove domain");
+
+      toast.success("Domain removed successfully", { id: loadingToast });
+      fetchDomains(); // Refresh list
+    } catch (error) {
+      console.error("Error removing domain:", error);
+      toast.error("Failed to remove domain", { id: loadingToast });
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">Domains</h2>
-        <button className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
-          Buy Domain
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-white text-black px-4 py-2 gap-2 rounded-md text-sm font-medium hover:bg-gray-200 flex transition-colors"
+        >
+          Add Domain or Subdomain
         </button>
       </div>
 
@@ -55,9 +99,6 @@ const Domains = () => {
             <tr>
               <th className="px-6 py-3 font-medium">Domain</th>
               <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium">Project</th>
-              <th className="px-6 py-3 font-medium">Nameservers</th>
-              <th className="px-6 py-3 font-medium">Expires</th>
               <th className="px-6 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
@@ -69,32 +110,18 @@ const Domains = () => {
                     <div className="p-2 rounded-md bg-[#222] text-gray-300">
                       <FiGlobe />
                     </div>
-                    <span className="font-medium text-white">{domain.name}</span>
+                    <span className="font-medium text-white">{domain.domain_address}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    {domain.status === 'Active' ? (
+                    {domain.isDeployed ? (
                       <FiCheckCircle className="text-green-500" />
                     ) : (
                       <FiAlertCircle className="text-yellow-500" />
                     )}
-                    <span className={domain.status === 'Active' ? 'text-green-500' : 'text-yellow-500'}>
-                      {domain.status}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-gray-300">
-                  {domain.project}
-                </td>
-                <td className="px-6 py-4 text-gray-300">
-                  {domain.nameservers}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="text-gray-300">{domain.expires}</span>
-                    <span className="text-xs text-gray-500">
-                      {domain.autoRenewal ? 'Auto-renewal on' : 'Auto-renewal off'}
+                    <span className={domain.isDeployed ? 'text-green-500' : 'text-yellow-500'}>
+                      {domain.isDeployed ? 'Deployed' : 'Pending Deployment'}
                     </span>
                   </div>
                 </td>
@@ -108,6 +135,13 @@ const Domains = () => {
           </tbody>
         </table>
       </div>
+
+      {showAddModal && (
+        <AddDomainModal 
+          onClose={() => setShowAddModal(false)} 
+          onAdd={handleAddDomain} 
+        />
+      )}
     </div>
   );
 };
