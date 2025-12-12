@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { FiServer, FiMoreHorizontal, FiCpu, FiActivity, FiTrash2 } from 'react-icons/fi';
+import { FiServer, FiMoreHorizontal, FiCpu, FiActivity, FiTrash2, FiEye } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import AddMachineModal from './AddMachineModal';
+import MachineAnalyticsModal from './MachineAnalyticsModal';
 
 interface MachineType{
   id:string,
@@ -20,6 +21,12 @@ const VPSMachines = () => {
   const [machines, setMachines] = useState<MachineType[]>([])
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [analyticsModal, setAnalyticsModal] = useState<{ isOpen: boolean; machineId: string; machineName: string; machineIp: string }>({
+    isOpen: false,
+    machineId: '',
+    machineName: '',
+    machineIp: ''
+  });
 
   const fetchMachines = async () => {
     try {
@@ -146,13 +153,27 @@ const VPSMachines = () => {
                     {machine.storage+"GB"}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => setDeleteId(machine.id)}
-                      className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-red-500 transition-colors"
-                      title="Delete Machine"
-                    >
-                      <FiTrash2 />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => setAnalyticsModal({
+                          isOpen: true,
+                          machineId: machine.id,
+                          machineName: machine.vps_name,
+                          machineIp: machine.vps_ip
+                        })}
+                        className="p-2 hover:bg-blue-500/10 rounded-md text-gray-400 hover:text-blue-400 transition-all border border-[#333] hover:border-blue-500/50"
+                        title="View Analytics"
+                      >
+                        <FiEye />
+                      </button>
+                      <button 
+                        onClick={() => setDeleteId(machine.id)}
+                        className="p-2 hover:bg-red-500/10 rounded-md text-gray-400 hover:text-red-500 transition-all border border-[#333] hover:border-red-500/50"
+                        title="Delete Machine"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -177,6 +198,14 @@ const VPSMachines = () => {
           onAdd={handleAddMachine}
         />
       )}
+
+      <MachineAnalyticsModal
+        isOpen={analyticsModal.isOpen}
+        onClose={() => setAnalyticsModal({ isOpen: false, machineId: '', machineName: '', machineIp: '' })}
+        machineId={analyticsModal.machineId}
+        machineName={analyticsModal.machineName}
+        machineIp={analyticsModal.machineIp}
+      />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
+import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
 
 interface Project {
@@ -17,10 +18,28 @@ interface Project {
   createdAt: string;
 }
 
+interface Machine {
+  id: string;
+  vps_ip: string;
+  vps_name: string;
+  region?: string;
+  cpu_cores?: string;
+  ram?: string;
+  storage?: string;
+  vps_status?: string;
+}
+
 const Overview = () => {
   const navigate = useNavigate();
   const [showMachineSelector, setShowMachineSelector] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [machines, setMachines] = useState<Machine[]>([]);
+  const [analyticsModal, setAnalyticsModal] = useState<{ isOpen: boolean; machineId: string; machineName: string; machineIp: string }>({
+    isOpen: false,
+    machineId: '',
+    machineName: '',
+    machineIp: ''
+  });
 
   const handleMachineSelect = (machine: any) => {
     setShowMachineSelector(false);
@@ -43,8 +62,23 @@ const Overview = () => {
     }
   }
 
+  async function fetchMachines() {
+    try {
+      const res = await apiClient("http://localhost:5051/get-machines", {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.data) {
+        setMachines(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+    }
+  }
+
   useEffect(() => {
     fetchProjects();
+    fetchMachines();
   }, []);
 
   const getRepoName = (repoUrl: string) => {
@@ -110,76 +144,66 @@ const Overview = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar - Usage & Alerts */}
+        {/* Sidebar - Machines */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Usage Card */}
-          <div className="border border-[#333] rounded-2xl p-6 bg-black">
-            <h3 className="text-sm font-semibold mb-6 text-white flex items-center gap-2">
-              Usage Overview
-            </h3>
-            
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="text-gray-400">Edge Requests</span>
-                  <span className="text-white font-medium">14K / 1M</span>
-                </div>
-                <div className="h-1.5 w-full bg-[#222] rounded-full overflow-hidden">
-
-                  <div className="h-full bg-blue-500 w-[1.4%] rounded-full"></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="text-gray-400">ISR Reads</span>
-                  <span className="text-white font-medium">2.9K / 1M</span>
-                </div>
-                <div className="h-1.5 w-full bg-[#222] rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-500 w-[0.3%] rounded-full"></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="text-gray-400">Bandwidth</span>
-                  <span className="text-white font-medium">20.29 MB / 10 GB</span>
-                </div>
-                <div className="h-1.5 w-full bg-[#222] rounded-full overflow-hidden">
-                  <div className="h-full bg-pink-500 w-[0.2%] rounded-full"></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="text-gray-400">Compute Time</span>
-                  <span className="text-white font-medium">27s / 4h</span>
-                </div>
-                <div className="h-1.5 w-full bg-[#222] rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 w-[0.2%] rounded-full"></div>
-                </div>
-              </div>
+          <h3 className="text-sm font-semibold text-white">VPS Machines</h3>
+          
+          {machines.length === 0 ? (
+            <div className="border border-[#333] rounded-2xl p-6 bg-black">
+              <p className="text-xs text-gray-500 text-center">No machines available</p>
             </div>
-            
-            <button className="w-full mt-6 border border-[#333] text-gray-400 text-xs py-2.5 rounded-xl hover:bg-[#111] hover:text-white transition-all font-medium">
-                View Full Analytics
-            </button>
-          </div>
+          ) : (
+            machines.map((machine) => (
+              <div key={machine.id} className="border border-[#333] rounded-2xl p-5 bg-black hover:border-gray-500 transition-all group">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
+                    <FiServer className="text-lg text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-white text-sm mb-1 truncate">{machine.vps_name}</h4>
+                    <p className="text-xs text-gray-500 font-mono">{machine.vps_ip}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      machine.vps_status?.toLowerCase() === 'running' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
+                    }`}></div>
+                    <span className="text-xs text-gray-400">{machine.vps_status || 'Unknown'}</span>
+                  </div>
+                  {machine.region && (
+                    <span className="text-xs text-gray-500">{machine.region}</span>
+                  )}
+                </div>
 
-          {/* Alerts Card */}
-          <div className="border border-[#333] rounded-2xl p-6 bg-black">
-              <h3 className="text-sm font-semibold mb-3 text-white">System Status</h3>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-300">All systems operational</span>
+                {(machine.cpu_cores || machine.ram) && (
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-4 pb-4 border-b border-[#222]">
+                    {machine.cpu_cores && (
+                      <span className="flex items-center gap-1">
+                        <FiActivity className="text-gray-600" /> {machine.cpu_cores}
+                      </span>
+                    )}
+                    {machine.ram && (
+                      <span>{machine.ram} GB RAM</span>
+                    )}
+                  </div>
+                )}
+                
+                <button
+                  onClick={() => setAnalyticsModal({
+                    isOpen: true,
+                    machineId: machine.id,
+                    machineName: machine.vps_name,
+                    machineIp: machine.vps_ip
+                  })}
+                  className="w-full bg-[#111] hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 text-xs py-2.5 rounded-lg transition-all font-medium border border-[#333] hover:border-blue-500/50 flex items-center justify-center gap-2"
+                >
+                  <FiEye /> View Analytics
+                </button>
               </div>
-              <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                  Enable advanced monitoring to track anomalies in real-time.
-              </p>
-              <button className="w-full bg-[#111] hover:bg-[#222] text-white text-xs py-2.5 rounded-xl transition-all font-medium border border-[#333]">
-                  Configure Alerts
-              </button>
-          </div>
+            ))
+          )}
         </div>
 
         {/* Projects Grid */}
@@ -250,6 +274,14 @@ const Overview = () => {
           </div>
         </div>
       </div>
+
+      <MachineAnalyticsModal
+        isOpen={analyticsModal.isOpen}
+        onClose={() => setAnalyticsModal({ isOpen: false, machineId: '', machineName: '', machineIp: '' })}
+        machineId={analyticsModal.machineId}
+        machineName={analyticsModal.machineName}
+        machineIp={analyticsModal.machineIp}
+      />
     </div>
   );
 };
