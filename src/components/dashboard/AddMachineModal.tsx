@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiX, FiServer, FiLock, FiGlobe, FiCpu, FiHardDrive, FiKey, FiCalendar } from 'react-icons/fi';
+import { FiX, FiServer, FiLock, FiGlobe, FiCpu, FiHardDrive, FiKey, FiCalendar, FiActivity } from 'react-icons/fi';
 
 interface AddMachineModalProps {
   onClose: () => void;
@@ -12,6 +12,7 @@ const AddMachineModal = ({ onClose, onAdd }: AddMachineModalProps) => {
     vpsName: '',
     vpsPassword: '',
     region: '',
+    cpuCores: '',
     ram: '',
     storage: '',
     sshKey: '',
@@ -25,10 +26,9 @@ const AddMachineModal = ({ onClose, onAdd }: AddMachineModalProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Convert RAM and Storage to numbers if needed by backend, or keep as strings if that's what is expected.
-    // Based on request "RAM: number in gb", "Storage: number in gb", I'll convert them.
     const payload = {
       ...formData,
+      cpuCores: Number(formData.cpuCores),
       ram: Number(formData.ram),
       storage: Number(formData.storage)
     };
@@ -119,11 +119,28 @@ const AddMachineModal = ({ onClose, onAdd }: AddMachineModalProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* CPU Cores */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <FiCpu /> CPU Cores
+                </label>
+                <input
+                  type="number"
+                  name="cpuCores"
+                  required
+                  min="1"
+                  value={formData.cpuCores}
+                  onChange={handleChange}
+                  placeholder="e.g. 2"
+                  className="w-full bg-black border border-[#333] rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/40 transition-colors"
+                />
+              </div>
+
               {/* RAM */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                  <FiCpu /> RAM (GB)
+                  <FiActivity /> RAM (GB)
                 </label>
                 <input
                   type="number"
