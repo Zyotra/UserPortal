@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import ZyotraLogo from '../components/ZyotraLogo';
-import { FiSearch, FiBell, FiChevronDown, FiLogOut, FiUser, FiSettings, FiGrid, FiServer, FiFolder, FiGlobe, FiPackage, FiActivity, FiCreditCard, FiSliders, FiCommand } from 'react-icons/fi';
+import { FiChevronDown, FiLogOut, FiUser, FiSettings, FiGrid, FiServer, FiFolder, FiGlobe, FiPackage, FiActivity, FiCreditCard, FiSliders, FiCommand } from 'react-icons/fi';
 import Overview from '../components/dashboard/Overview';
 import VPSMachines from '../components/dashboard/VPSMachines';
 import Projects from '../components/dashboard/Projects';
@@ -82,11 +82,8 @@ const Dashboard = () => {
           <div className="flex items-center gap-3">
             <ZyotraLogo className="w-7 h-7" />
             <div className="h-6 w-[1px] bg-white/10"></div>
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 group-hover:shadow-lg group-hover:shadow-purple-500/20 transition-all"></div>
-              <span className="font-medium text-sm text-white/90">Workspace</span>
-              <span className="bg-white/5 text-[10px] px-2 py-0.5 rounded-full text-gray-400 border border-white/10">Hobby</span>
-              <FiChevronDown className="text-gray-500 text-sm ml-1" />
+            <div className="flex items-center gap-2 cursor-pointer group">              
+              <span className="font-medium text-sm text-white/90">Zyotra</span>
             </div>
           </div>
 
@@ -111,18 +108,10 @@ const Dashboard = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-xs font-medium text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all">
-              Feedback
-            </button>
-            <div className="relative">
-              <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all">
-                <FiBell className="text-base" />
-              </button>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black"></span>
-            </div>
 
             {/* Profile Menu */}
             <div className="relative ml-2" ref={profileMenuRef}>
+
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 cursor-pointer hover:shadow-lg hover:shadow-orange-500/30 transition-all ring-2 ring-white/10"

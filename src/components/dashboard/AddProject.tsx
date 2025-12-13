@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch } from 'react-icons/fi';
+import { SiNodedotjs, SiPython, SiExpress, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker } from 'react-icons/si';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
 const AddProject = () => {
@@ -12,6 +13,8 @@ const AddProject = () => {
   const [deploymentStatus, setDeploymentStatus] = useState<'idle' | 'deploying' | 'success' | 'failed'>('idle');
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const [availableDomains, setAvailableDomains] = useState<{ domain_address: string; id: number }[]>([]);
+  const [projectTypeSearch, setProjectTypeSearch] = useState('');
+  const [showProjectTypeDropdown, setShowProjectTypeDropdown] = useState(false);
 
   const machineId = location.state?.vpsId || '';
   
@@ -28,14 +31,13 @@ const AddProject = () => {
     vpsId: machineId,
     repoUrl: '',
     deploymentId: '',
+    projectType: '',
     packageInstallerCommand: 'npm install',
     buildCommand: 'npm run build',
-    serverFilePath: 'index.js',
+    serverFilePath: '',
     domain: '',
-    webServiceType: 'static', // static, nodejs, docker, etc.
   });
 
-  // Handle incoming socket messages
   useEffect(() => {
     if (messages) {
       if (messages.deploymentId && !formData.deploymentId) {
@@ -104,6 +106,21 @@ const AddProject = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const projectTypes = [
+    { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
+    { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },
+    { value: 'python', label: 'Python', icon: SiPython, color: 'text-blue-400' },
+    { value: 'django', label: 'Django', icon: SiDjango, color: 'text-green-600' },
+    { value: 'flask', label: 'Flask', icon: SiFlask, color: 'text-gray-300' },
+    { value: 'fastapi', label: 'FastAPI', icon: SiFastapi, color: 'text-teal-500' },
+    { value: 'ruby', label: 'Ruby', icon: SiRuby, color: 'text-red-500' },
+    { value: 'php', label: 'PHP', icon: SiPhp, color: 'text-indigo-400' },
+    { value: 'go', label: 'Go', icon: SiGo, color: 'text-cyan-500' },
+    { value: 'rust', label: 'Rust', icon: SiRust, color: 'text-orange-500' },
+    { value: 'docker', label: 'Docker', icon: SiDocker, color: 'text-blue-500' },
+    { value: 'other', label: 'Other', icon: FiCode, color: 'text-gray-400' },
+  ];
+
   const handleEnvChange = (index: number, field: 'key' | 'value', value: string) => {
     const newEnvVars = [...envVars];
     newEnvVars[index][field] = value;
@@ -148,8 +165,6 @@ const AddProject = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // The socket will handle the logs and completion status
-        // We just wait here or handle the immediate response if it contains final status
         if (data.status === 'success') {
              setDeploymentStatus('success');
              setLoading(false);
@@ -259,41 +274,112 @@ const AddProject = () => {
               <FiBox className="text-gray-400" /> Project Details
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Deployment ID / Name</label>
-                <input
-                  type="text"
-                  name="deploymentId"
-                  value={formData.deploymentId}
-                  disabled={true}
-                  onChange={handleInputChange}
-                  className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Web Service Type</label>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Project Type Selection */}
+              <div className="space-y-3 project-type-dropdown">
+                <label className="text-sm font-medium text-gray-300">Project Type <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select
-                    name="webServiceType"
-                    value={formData.webServiceType}
-                    onChange={handleInputChange}
-                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white appearance-none"
+                  <div 
+                    onClick={() => setShowProjectTypeDropdown(!showProjectTypeDropdown)}
+                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus-within:border-white transition-colors text-white cursor-pointer flex items-center justify-between"
                   >
-                    <option value="static">Static Site</option>
-                    <option value="nodejs">Node.js</option>
-                    <option value="python">Python</option>
-                    <option value="docker">Docker</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <FiChevronDown />
+                    {formData.projectType ? (
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const selected = projectTypes.find(t => t.value === formData.projectType);
+                          if (selected) {
+                            const Icon = selected.icon;
+                            return (
+                              <>
+                                <Icon className={`text-xl ${selected.color}`} />
+                                <span>{selected.label}</span>
+                              </>
+                            );
+                          }
+                          return <span className="text-gray-500">Select project type...</span>;
+                        })()}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">Select project type...</span>
+                    )}
                   </div>
+
+                  {showProjectTypeDropdown && (
+                    <div className="absolute z-50 w-full mt-2 bg-[#111] border border-[#333] rounded-xl shadow-2xl overflow-hidden">
+                      <div className="p-3 border-b border-[#333]">
+                        <div className="relative">
+                          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                          <input
+                            type="text"
+                            value={projectTypeSearch}
+                            onChange={(e) => setProjectTypeSearch(e.target.value)}
+                            placeholder="Search frameworks..."
+                            className="w-full bg-black border border-[#333] rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                        {projectTypes
+                          .filter(type => 
+                            type.label.toLowerCase().includes(projectTypeSearch.toLowerCase()) ||
+                            type.value.toLowerCase().includes(projectTypeSearch.toLowerCase())
+                          )
+                          .map((type) => {
+                            const Icon = type.icon;
+                            return (
+                              <button
+                                key={type.value}
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, projectType: type.value }));
+                                  setShowProjectTypeDropdown(false);
+                                  setProjectTypeSearch('');
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                                  formData.projectType === type.value
+                                    ? 'bg-white/10 border-l-2 border-white'
+                                    : 'hover:bg-white/5'
+                                }`}
+                              >
+                                <Icon className={`text-2xl ${type.color}`} />
+                                <span className="text-sm font-medium">{type.label}</span>
+                                {formData.projectType === type.value && (
+                                  <FiCheckCircle className="ml-auto text-white" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        {projectTypes.filter(type => 
+                          type.label.toLowerCase().includes(projectTypeSearch.toLowerCase()) ||
+                          type.value.toLowerCase().includes(projectTypeSearch.toLowerCase())
+                        ).length === 0 && (
+                          <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                            No frameworks found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Deployment ID / Name</label>
+                  <input
+                    type="text"
+                    name="deploymentId"
+                    value={formData.deploymentId}
+                    disabled={true}
+                    onChange={handleInputChange}
+                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
+                    required
+                  />
+                </div> 
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                   <FiGithub /> Git Repository URL
                 </label>
@@ -318,7 +404,7 @@ const AddProject = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Install Command</label>
+                <label className="text-sm font-medium text-gray-300">Package Installer Command</label>
                 <input
                   type="text"
                   name="packageInstallerCommand"
