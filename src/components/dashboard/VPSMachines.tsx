@@ -134,7 +134,7 @@ const VPSMachines = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${machine.vps_status === 'Running' ? 'bg-green-500' : 'bg-green-500'}`}></div>
-                      <span className={machine.vps_status === 'Running' ? 'text-green-500' : 'text-green-500'}>{machine.vps_status || "running"}</span>
+                      <span className={machine.vps_status === 'Running' ? 'text-green-500' : 'text-green-500'}>{machine.vps_status || "Running"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 font-mono text-xs text-gray-300">

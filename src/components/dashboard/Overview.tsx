@@ -170,10 +170,10 @@ const Overview = () => {
                     <div className={`w-2 h-2 rounded-full ${
                       machine.vps_status?.toLowerCase() === 'running' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
                     }`}></div>
-                    <span className="text-xs text-gray-400">{machine.vps_status || 'Unknown'}</span>
+                    <span className="text-xs text-gray-500">{machine.storage +"GB Storage"}</span>
                   </div>
                   {machine.region && (
-                    <span className="text-xs text-gray-500">{machine.region}</span>
+                    <span className="text-xs text-gray-400">{machine.region}</span>
                   )}
                 </div>
 

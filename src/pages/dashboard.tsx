@@ -102,9 +102,7 @@ const Dashboard = () => {
             <span className="text-gray-500 text-2xl font-thin">/</span>
             <div className="flex items-center gap-2 cursor-pointer hover:bg-[#111] p-1 rounded transition-colors">
               <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500"></div>
-              <span className="font-medium text-sm">Workspace</span>
-              <span className="bg-[#333] text-[10px] px-1.5 py-0.5 rounded text-gray-300 border border-[#444]">Hobby</span>
-              <FiChevronDown className="text-gray-500 text-lg" />
+              <span className="font-medium text-sm">{userEmail}</span>
             </div>
           </div>
 
@@ -120,9 +118,6 @@ const Dashboard = () => {
                 <kbd className="bg-[#222] border border-[#333] rounded px-1.5 text-[10px] text-gray-500 font-sans">F</kbd>
               </div>
             </div>
-            <button className="text-sm border border-[#333] rounded-md px-3 py-1.5 hover:bg-[#111] transition-colors text-gray-300">Feedback</button>
-            <button className="text-gray-400 hover:text-white transition-colors"><FiBell className="text-lg" /></button>
-
             {/* Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
               <button
