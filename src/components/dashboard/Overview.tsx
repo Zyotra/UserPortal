@@ -41,9 +41,16 @@ const Overview = () => {
     machineIp: ''
   });
 
-  const handleMachineSelect = (machine: any) => {
+  const handleMachineSelect = (machine: any, serviceType: string) => {
     setShowMachineSelector(false);
-    navigate('/new-project', { state: { vpsId: machine.id } });
+    if (serviceType === 'webservice') {
+      navigate('/new-project', { state: { vpsId: machine.id } });
+    } else if (serviceType === 'ui') {
+      navigate('/deploy-ui', { state: { vpsId: machine.id } });
+    } else {
+      // For database and caching, show a coming soon message or handle accordingly
+      alert(`${serviceType} deployment coming soon!`);
+    }
   };
 
   async function fetchProjects() {

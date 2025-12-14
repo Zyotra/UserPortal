@@ -5,6 +5,7 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './pages/dashboard'
 import AddProject from './components/dashboard/AddProject'
+import DeployUI from './components/dashboard/DeployUI'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/new-project" element={<AddProject />} />
+        <Route path="/deploy-ui" element={<DeployUI />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
