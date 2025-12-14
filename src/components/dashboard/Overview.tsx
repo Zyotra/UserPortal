@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye, FiCode } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
-
+import { backendProjectTypes } from '../../types';
 interface Project {
   id: number;
   vpsIp: string;
@@ -14,6 +14,7 @@ interface Project {
   domain: string;
   logs: string;
   deploymentId: string;
+  projectType: string;
   status: string;
   createdAt: string;
 }
@@ -101,9 +102,13 @@ const Overview = () => {
     return domain.split('.')[0];
   };
 
-  const getProjectIcon = (index: number) => {
-    const icons = ['⚡', '▲', '♟️', '🚀', '✖️', '📦', '🎯', '💎', '🔥', '⭐'];
-    return icons[index % icons.length];
+  const getProjectIcon = (projectType:string) => {
+    const project = backendProjectTypes.find(pt => pt.value == projectType);
+    if (project) {
+      const IconComponent = project.icon;
+      return <IconComponent className={`text-2xl ${project.color}`} />;
+    }
+    return <FiCode className="text-2xl text-gray-500" />;
   };
 
   const formatDate = (dateString: string) => {
@@ -236,7 +241,7 @@ const Overview = () => {
 
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#222] to-[#111] border border-[#333] flex items-center justify-center text-2xl text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
-                      {getProjectIcon(index)}
+                      {getProjectIcon(project.projectType)}
                     </div>
                     <div>
                       <h4 className="font-semibold text-base text-white mb-1 group-hover:text-white transition-colors">
