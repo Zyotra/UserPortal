@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
-import { backendProjectTypes } from '../../types';
+import { backendFrameworks } from '../../types';
 interface Project {
   id: number;
   vpsIp: string;
@@ -103,7 +103,7 @@ const Overview = () => {
   };
 
   const getProjectIcon = (projectType:string) => {
-    const project = backendProjectTypes.find(pt => pt.value == projectType);
+    const project = backendFrameworks.find(pt => pt.value == projectType);
     if (project) {
       const IconComponent = project.icon;
       return <IconComponent className={`text-2xl ${project.color}`} />;

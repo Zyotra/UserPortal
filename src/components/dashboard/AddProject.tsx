@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch } from 'react-icons/fi';
-import { backendProjectTypes as projectTypes } from '../../types';
+import { backendFrameworks } from '../../types';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
 const AddProject = () => {
@@ -25,13 +25,13 @@ const AddProject = () => {
     }
   }, [machineId, navigate]);
 
-  const { socket, messages } = useSocket(machineId) as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string; log?: string; status?: string } };
+  const { socket, messages } = useSocket(machineId,"webservice") as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string; log?: string; status?: string } };
   
   const [formData, setFormData] = useState({
     vpsId: machineId,
     repoUrl: '',
     deploymentId: '',
-    projectType: '',
+    framework: '',
     packageInstallerCommand: 'npm install',
     buildCommand: 'npm run build',
     serverFilePath: '',
@@ -270,10 +270,10 @@ const AddProject = () => {
                     onClick={() => setShowProjectTypeDropdown(!showProjectTypeDropdown)}
                     className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus-within:border-white transition-colors text-white cursor-pointer flex items-center justify-between"
                   >
-                    {formData.projectType ? (
+                    {formData.framework ? (
                       <div className="flex items-center gap-3">
                         {(() => {
-                          const selected = projectTypes.find(t => t.value === formData.projectType);
+                          const selected = backendFrameworks.find(t => t.value === formData.framework);
                           if (selected) {
                             const Icon = selected.icon;
                             return (
@@ -307,7 +307,7 @@ const AddProject = () => {
                         </div>
                       </div>
                       <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                        {projectTypes
+                        {backendFrameworks
                           .filter(type => 
                             type.label.toLowerCase().includes(projectTypeSearch.toLowerCase()) ||
                             type.value.toLowerCase().includes(projectTypeSearch.toLowerCase())
@@ -319,25 +319,25 @@ const AddProject = () => {
                                 key={type.value}
                                 type="button"
                                 onClick={() => {
-                                  setFormData(prev => ({ ...prev, projectType: type.value }));
+                                  setFormData(prev => ({ ...prev, framework: type.value }));
                                   setShowProjectTypeDropdown(false);
                                   setProjectTypeSearch('');
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                                  formData.projectType === type.value
+                                  formData.framework === type.value
                                     ? 'bg-white/10 border-l-2 border-white'
                                     : 'hover:bg-white/5'
                                 }`}
                               >
                                 <Icon className={`text-2xl ${type.color}`} />
                                 <span className="text-sm font-medium">{type.label}</span>
-                                {formData.projectType === type.value && (
+                                {formData.framework === type.value && (
                                   <FiCheckCircle className="ml-auto text-white" />
                                 )}
                               </button>
                             );
                           })}
-                        {projectTypes.filter(type => 
+                        {backendFrameworks.filter(type => 
                           type.label.toLowerCase().includes(projectTypeSearch.toLowerCase()) ||
                           type.value.toLowerCase().includes(projectTypeSearch.toLowerCase())
                         ).length === 0 && (

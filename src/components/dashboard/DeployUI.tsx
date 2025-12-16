@@ -39,7 +39,7 @@ const DeployUI = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const { socket, messages } = useSocket(machineId) as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string; log?: string; status?: string } };
+  const { socket, messages } = useSocket(machineId,"ui") as { socket: WebSocket | null; messages: { type: string; deploymentId?: string; message?: string; log?: string; status?: string } };
   
   const [formData, setFormData] = useState({
     vpsId: machineId,
@@ -48,8 +48,8 @@ const DeployUI = () => {
     framework: '',
     packageInstallerCommand: 'npm install',
     buildCommand: 'npm run build',
-    outputDirectory: 'dist',
-    domain: '',
+    outDir: 'dist',
+    domain: ''
   });
 
   useEffect(() => {
@@ -156,7 +156,7 @@ const DeployUI = () => {
     };
 
     try {
-      const response = await apiClient('http://localhost:5053/deploy-ui', {
+      const response = await apiClient('http://localhost:5056/deploy-ui', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
@@ -432,8 +432,8 @@ const DeployUI = () => {
                 <label className="text-sm font-medium text-gray-300">Output Directory</label>
                 <input
                   type="text"
-                  name="outputDirectory"
-                  value={formData.outputDirectory}
+                  name="outDir"
+                  value={formData.outDir}
                   onChange={handleInputChange}
                   placeholder="dist/ or build/"
                   className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
