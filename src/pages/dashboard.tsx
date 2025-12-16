@@ -9,11 +9,15 @@ import Deployments from '../components/dashboard/Deployments';
 import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
+import apiClient from '../utils/apiClient';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [loading, setLoading] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
@@ -32,7 +36,24 @@ const Dashboard = () => {
     if (!token) {
       window.location.href = '/login';
     }
-
+    const fetchUserProfile = async () => {
+      setLoading(true);
+      const res=await apiClient("http://localhost:5050/dashboard", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const data=await res.json();
+      console.log('User profile data:', data);
+      if (res.status !== 200) {
+        window.location.href = '/login';
+      }
+      setEmail(data.userEmail);
+      setName(data.userName);
+      setLoading(false);
+    }
+    fetchUserProfile();
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
@@ -73,7 +94,41 @@ const Dashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            {/* Outer rotating ring */}
+            <div className="w-20 h-20 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+            
+            {/* Inner pulsing circle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full animate-pulse"></div>
+            </div>
+            
+            {/* Logo in center */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ZyotraLogo className="w-8 h-8" />
+            </div>
+          </div>
+          
+          {/* Loading text */}
+          <div className="mt-6 space-y-2">
+            <p className="text-white/90 font-medium">Loading Dashboard</p>
+            <div className="flex items-center justify-center gap-1">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-blue-900/30">
       {/* Top Header Bar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-black/40 backdrop-blur-xl border-b border-white/5 z-50">
@@ -82,7 +137,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-3">
             <ZyotraLogo className="w-7 h-7" />
             <div className="h-6 w-[1px] bg-white/10"></div>
-            <div className="flex items-center gap-2 cursor-pointer group">              
+            <div className="flex items-center gap-2 cursor-pointer group">
               <span className="font-medium text-sm text-white/90">Zyotra</span>
             </div>
           </div>
@@ -114,14 +169,21 @@ const Dashboard = () => {
 
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 cursor-pointer hover:shadow-lg hover:shadow-orange-500/30 transition-all ring-2 ring-white/10"
-              ></button>
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all group"
+              >
+
+                <span className="text-sm font-medium text-white/90 hidden sm:block">{name}</span>
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white ring-2 ring-white/10 group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all">
+                  <FiUser className="text-base" />
+                </div>
+                <FiChevronDown className={`text-sm text-gray-400 hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+              </button>
 
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-64 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
                   <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
-                    <p className="text-sm text-white font-semibold">Ramkrishna</p>
-                    <p className="text-xs text-gray-400 truncate mt-1">ramkrishna@zyotra.com</p>
+                    <p className="text-sm text-white font-semibold">{name}</p>
+                    <p className="text-xs text-gray-400 truncate mt-1">{email}</p>
                   </div>
                   <div className="py-2">
                     <button className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-all">
@@ -166,11 +228,10 @@ const Dashboard = () => {
                 <button
                   key={item.name}
                   onClick={() => setActiveTab(item.name)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${
-                    isActive
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${isActive
                       ? 'bg-white/10 text-white shadow-lg'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
+                    }`}
                   title={sidebarCollapsed ? item.name : ''}
                 >
                   {isActive && (
