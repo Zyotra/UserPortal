@@ -16,22 +16,31 @@ const Login = () => {
   const navigate=useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response=await fetch("http://localhost:5050/login",{
-      method: "POST",
-      credentials:"include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
-    const data=await response.json();
-    console.log(data)
-    if(data.accessToken){
-      localStorage.setItem('accessToken', data.accessToken);
-      navigate('/dashboard');
+    setError('');
+    try {
+      const response=await fetch("http://localhost:5050/login",{
+        method: "POST",
+        credentials:"include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+      const data=await response.json();
+      console.log(data)
+      if(data.accessToken){
+        localStorage.setItem('accessToken', data.accessToken);
+        navigate('/dashboard');
+      } else {
+        setError(data.message || 'Invalid email or password. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to connect to server. Please check your connection.');
     }
   };
   useEffect(() => {
@@ -75,6 +84,14 @@ const Login = () => {
                 <span className="px-3 text-gray-500 text-xs">or log in with email</span>
                 <div className="flex-1 border-t border-[#2e3036]"></div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded text-sm flex items-start gap-2">
+                <span className="text-red-500 font-bold mt-0.5">✕</span>
+                <span>{error}</span>
+              </div>
+            )}
 
             {/* Email Form */}
             <form onSubmit={handleContinue}>

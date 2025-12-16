@@ -19,6 +19,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<'details' | 'otp'>('details');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -44,6 +45,7 @@ const Register = () => {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       const res = await apiClient('http://localhost:5050/send-otp', {
         method: 'POST',
@@ -56,12 +58,15 @@ const Register = () => {
       if (res.ok) {
         setStep('otp');
         setTimeLeft(120); // 2 minutes
+        setError('');
         toast.success('OTP sent to your email');
       } else {
+        setError(data.message || 'Failed to send OTP. Please check your email and try again.');
         toast.error(data.message || 'Failed to send OTP');
       }
     } catch (error) {
       console.error(error);
+      setError('Failed to connect to server. Please check your connection.');
       toast.error('Failed to connect to server');
     } finally {
       setLoading(false);
@@ -71,6 +76,7 @@ const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       const res = await apiClient('http://localhost:5050/register', {
         method: 'POST',
@@ -81,13 +87,16 @@ const Register = () => {
       const data = await res.json();
 
       if (res.ok) {
+        setError('');
         toast.success('Registration successful! Please login.');
         navigate('/login');
       } else {
+        setError(data.message || 'Registration failed. Please check your details and try again.');
         toast.error(data.message || 'Registration failed');
       }
     } catch (error) {
       console.error(error);
+      setError('Failed to connect to server. Please check your connection.');
       toast.error('Failed to connect to server');
     } finally {
       setLoading(false);
@@ -139,6 +148,14 @@ const Register = () => {
                     <span className="px-3 text-gray-500 text-xs">or sign up with email</span>
                     <div className="flex-1 border-t border-[#2e3036]"></div>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded text-sm flex items-start gap-2">
+                    <span className="text-red-500 font-bold mt-0.5">✕</span>
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 {/* Registration Form */}
                 <form onSubmit={handleSendOtp}>
@@ -198,6 +215,14 @@ const Register = () => {
                   </p>
                   <p className="text-white font-medium">{formData.email}</p>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded text-sm flex items-start gap-2">
+                    <span className="text-red-500 font-bold mt-0.5">✕</span>
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <label className="block text-gray-300 text-sm mb-2 font-medium">
                   Verification Code
