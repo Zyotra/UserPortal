@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
-import { backendFrameworks } from '../../types';
+import { Frameworks } from '../../types';
 interface Project {
   id: number;
   vpsIp: string;
@@ -14,6 +14,7 @@ interface Project {
   domain: string;
   logs: string;
   deploymentId: string;
+  framework: string;
   projectType: string;
   status: string;
   createdAt: string;
@@ -103,7 +104,7 @@ const Overview = () => {
   };
 
   const getProjectIcon = (projectType:string) => {
-    const project = backendFrameworks.find(pt => pt.value == projectType);
+    const project = Frameworks.find(pt => pt.value == projectType);
     if (project) {
       const IconComponent = project.icon;
       return <IconComponent className={`text-2xl ${project.color}`} />;
@@ -241,7 +242,7 @@ const Overview = () => {
 
                   <div className="flex items-start gap-4 mb-6">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#222] to-[#111] border border-[#333] flex items-center justify-center text-2xl text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
-                      {getProjectIcon(project.projectType)}
+                      {getProjectIcon(project.framework)}
                     </div>
                     <div>
                       <h4 className="font-semibold text-base text-white mb-1 group-hover:text-white transition-colors">
