@@ -5,6 +5,7 @@ import { SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiSvelte, SiHtml5 } from '
 import toast from 'react-hot-toast';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
+import { DEPLOYMENT_MANAGER_URL, UI_DEPLOYMENT_URL } from '../../types';
 
 const DeployUI = () => {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ const DeployUI = () => {
   useEffect(() => {
     const fetchDomains = async () => {
       try {
-        const res = await apiClient('http://localhost:5051/get-domains', {
+        const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-domains`||'http://localhost:5051/get-domains', {
           method: 'GET',
         });
         const data = await res.json();
@@ -156,7 +157,7 @@ const DeployUI = () => {
     };
 
     try {
-      const response = await apiClient('http://localhost:5056/deploy-ui', {
+      const response = await apiClient(`${UI_DEPLOYMENT_URL}/deploy-ui`||'http://localhost:5056/deploy-ui', {
         method: 'POST',
         body: JSON.stringify(payload),
       });

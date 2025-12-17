@@ -5,6 +5,7 @@ import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import AddMachineModal from './AddMachineModal';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
+import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface MachineType{
   id:string,
@@ -30,7 +31,7 @@ const VPSMachines = () => {
 
   const fetchMachines = async () => {
     try {
-      const res = await apiClient("http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
         method: "GET",
       });
       const data = await res.json();
@@ -50,7 +51,7 @@ const VPSMachines = () => {
   const handleAddMachine = async (machineData: any) => {
     const loadingToast = toast.loading("Adding machine...");
     try {
-      const res = await apiClient("http://localhost:5051/add-machine", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/add-machine`||"http://localhost:5051/add-machine", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +75,7 @@ const VPSMachines = () => {
 
     const loadingToast = toast.loading("Deleting machine...");
     try {
-      const res = await apiClient(`http://localhost:5051/delete-machine/${deleteId}`, {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/delete-machine/${deleteId}`||`http://localhost:5051/delete-machine/${deleteId}`, {
         method: "DELETE",
       });
 

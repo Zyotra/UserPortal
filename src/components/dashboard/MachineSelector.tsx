@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiServer, FiCpu, FiActivity, FiX, FiArrowRight, FiArrowLeft, FiCode, FiLayers, FiDatabase } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
+import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface MachineType {
   id: string;
@@ -72,7 +73,7 @@ const MachineSelector = ({ onSelect, onClose }: MachineSelectorProps) => {
   const fetchMachines = async () => {
     setLoading(true);
     try {
-      const res = await apiClient("http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
         method: "GET",
       });
       const data = await res.json();

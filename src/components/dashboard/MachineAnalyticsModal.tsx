@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiX, FiServer, FiCpu, FiHardDrive, FiActivity, FiMonitor, FiLoader } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import parseSystemData from '../../Parser/machineDataParser';
+import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface MachineAnalyticsModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ const MachineAnalyticsModal = ({ isOpen, onClose, machineId, machineName, machin
   const fetchMachineAnalytics = async () => {
     setLoading(true);
     try {
-      const res = await apiClient(`http://localhost:5051/get-machine-analytics/${machineId}`, {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machine-analytics/${machineId}`||`http://localhost:5051/get-machine-analytics/${machineId}`, {
         method: 'GET',
       });
       const data = await res.json();

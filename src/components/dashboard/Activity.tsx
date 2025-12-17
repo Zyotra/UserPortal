@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiGitCommit, FiActivity, FiClock, FiExternalLink } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
+import { WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 
 interface ActivityItem {
   id: number;
@@ -18,7 +19,7 @@ const Activity = () => {
   const fetchActivities = async () => {
     try {
       setLoading(true);
-      const res = await apiClient("http://localhost:5053/get-activity-logs", {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/get-activity-logs`|| "http://localhost:5053/get-activity-logs", {
         method: "GET",
       });
       const resData = await res.json();

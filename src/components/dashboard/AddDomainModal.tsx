@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiServer, FiX, FiInfo, FiCopy, FiCheck } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
+import { DEPLOYMENT_MANAGER_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 
 interface MachineType {
   id: string;
@@ -23,7 +24,7 @@ const AddDomainModal = ({ onClose, onAdd }: AddDomainModalProps) => {
 
   const fetchMachines = async () => {
     try {
-      const res = await apiClient("http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
         method: "GET",
       });
       const data = await res.json();

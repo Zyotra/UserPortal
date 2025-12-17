@@ -10,7 +10,7 @@ import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
 import apiClient from '../utils/apiClient';
-import { API_URL } from '../types';
+import { AUTH_API_URL } from '../types';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
@@ -39,7 +39,7 @@ const Dashboard = () => {
     }
     const fetchUserProfile = async () => {
       setLoading(true);
-      const res=await apiClient(`${API_URL}/dashboard`, {
+      const res=await apiClient(`${AUTH_API_URL}/dashboard`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`

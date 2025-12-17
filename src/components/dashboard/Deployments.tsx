@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiGitCommit, FiClock, FiExternalLink, FiMoreHorizontal, FiGithub, FiServer, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import apiClient from '../../utils/apiClient';
+import { WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 
 interface Project {
   id: number;
@@ -20,7 +21,7 @@ const Deployments = () => {
 
   async function fetchProjects() {
     try {
-      const res = await apiClient("http://localhost:5053/get-projects", {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/get-projects`||"http://localhost:5053/get-projects", {
         method: "GET",
       });
       const data = await res.json();

@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import AddDomainModal from './AddDomainModal';
 import ConfirmationModal from './ConfirmationModal';
 import apiClient from '../../utils/apiClient';
+import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface Domain {
   id: string;
@@ -22,7 +23,7 @@ const Domains = () => {
 
   const fetchDomains = async () => {
     try {
-      const res = await apiClient("http://localhost:5051/get-domains", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-domains`||"http://localhost:5051/get-domains", {
         method: "GET",
       });
       const data = await res.json();
@@ -44,7 +45,7 @@ const Domains = () => {
   const handleAddDomain = async (domain: string, machineIp: string) => {
     const loadingToast = toast.loading("Adding domain...");
     try {
-      const res = await apiClient("http://localhost:5051/add-domain", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/add-domain`||"http://localhost:5051/add-domain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +70,7 @@ const Domains = () => {
 
     const loadingToast = toast.loading("Removing domain...");
     try {
-      const res = await apiClient(`http://localhost:5051/delete-domain/${deleteId}`, {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/delete-domain/${deleteId}`||`http://localhost:5051/delete-domain/${deleteId}`, {
         method: "DELETE",
       });
 

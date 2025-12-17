@@ -1,4 +1,4 @@
-import { API_URL } from "../types";
+import { AUTH_API_URL } from "../types";
 export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('accessToken');
   
@@ -22,7 +22,7 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
   if (response.status === 419) {
     console.log("reponse 419 - attempting token refresh");
     try {
-      const refreshResponse = await fetch(`${API_URL}/get-access-token`, {
+      const refreshResponse = await fetch(`${AUTH_API_URL}/get-access-token`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" }

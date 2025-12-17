@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
-import { Frameworks } from '../../types';
+import { DEPLOYMENT_MANAGER_URL, Frameworks, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 interface Project {
   id: number;
   vpsIp: string;
@@ -57,7 +57,7 @@ const Overview = () => {
 
   async function fetchProjects() {
     try {
-      const res = await apiClient("http://localhost:5053/get-projects", {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}`||"http://localhost:5053/get-projects", {
         method: "GET",
       });
       const data = await res.json();
@@ -73,7 +73,7 @@ const Overview = () => {
 
   async function fetchMachines() {
     try {
-      const res = await apiClient("http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
         method: "GET",
       });
       const data = await res.json();

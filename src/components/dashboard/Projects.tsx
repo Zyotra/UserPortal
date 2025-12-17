@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
+import { WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 
 interface Project {
   id: number;
@@ -46,7 +47,7 @@ const Projects = () => {
     if (!projectToDelete) return;
     
     try {
-      const res = await apiClient(`http://localhost:5053/delete-project/${projectToDelete.id}`, {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/delete-project/${projectToDelete.id}`||`http://localhost:5053/delete-project/${projectToDelete.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {

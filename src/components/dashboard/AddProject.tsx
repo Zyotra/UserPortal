@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch } from 'react-icons/fi';
-import { backendFrameworks } from '../../types';
+import { backendFrameworks, DEPLOYMENT_MANAGER_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
 const AddProject = () => {
@@ -70,7 +70,7 @@ const AddProject = () => {
   useEffect(() => {
     const fetchDomains = async () => {
       try {
-        const res = await apiClient('http://localhost:5051/get-domains', {
+        const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-domains`||'http://localhost:5051/get-domains', {
           method: 'GET',
         });
         const data = await res.json();
@@ -144,7 +144,7 @@ const AddProject = () => {
 
     try {
       // Updated endpoint to port 5053
-      const response = await apiClient('http://localhost:5053/deploy-webservice', {
+      const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-webservice`||'http://localhost:5053/deploy-webservice', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
