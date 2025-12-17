@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { WS_URL_UI } from "../types";
+import { WS_URL_WEBSERVICE } from "../types";
 interface socketMessage {
     type: string;
     deploymentId?:string;
@@ -11,9 +13,9 @@ export const useSocket = (machineId: string,projectType:string) => {
         const token = localStorage.getItem("accessToken");
         let WS_URL=""
         if(projectType =="webservice"){
-            WS_URL = ("ws://localhost:5053/deploy-logs") + `?machineId=${machineId}&token=${token}`;
+            WS_URL = (WS_URL_WEBSERVICE) + `?machineId=${machineId}&token=${token}`;
         }else if(projectType =="ui"){
-            WS_URL = ("ws://localhost:5056/deploy-logs") + `?machineId=${machineId}&token=${token}`;
+            WS_URL = (WS_URL_UI) + `?machineId=${machineId}&token=${token}`;
         }else{
             console.error("Invalid project type for WebSocket connection");
             return;

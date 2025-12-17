@@ -57,7 +57,7 @@ const Overview = () => {
 
   async function fetchProjects() {
     try {
-      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}`||"http://localhost:5053/get-projects", {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}`, {
         method: "GET",
       });
       const data = await res.json();

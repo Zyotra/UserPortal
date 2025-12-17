@@ -1,11 +1,11 @@
 import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
-export const AUTH_API_URL=import.meta.env.VITE_BACKEND_URL as string;
-export const WEB_SERVICE_DEPLOYMENT_URL=import.meta.env.VITE_WEBSERVICE_DEPLOYMENT_URL as string;
-export const UI_DEPLOYMENT_URL=import.meta.env.VITE_UI_DEPLOYMENT_URL as string;
-export const WS_URL_WEBSERVICE=import.meta.env.VITE_WS_URL_WEBSERVICE as string;
-export const WS_URL_UI=import.meta.env.VITE_WS_URL_UI as string;
-export const DEPLOYMENT_MANAGER_URL=import.meta.env.VITE_DEPLOYMENT_MANAGER_URL as string;
+export const AUTH_API_URL=import.meta.env.VITE_BACKEND_URL || "http://localhost:5050" as string;
+export const WEB_SERVICE_DEPLOYMENT_URL=import.meta.env.VITE_WEBSERVICE_DEPLOYMENT_URL ||"http://localhost:5053/get-projects" as string;
+export const UI_DEPLOYMENT_URL=import.meta.env.VITE_UI_DEPLOYMENT_URL || "http://localhost:5056" as string;
+export const WS_URL_WEBSERVICE=import.meta.env.VITE_WS_URL_WEBSERVICE || "ws://localhost:5053/deploy-logs" as string;
+export const WS_URL_UI=import.meta.env.VITE_WS_URL_UI || "ws://localhost:5056/deploy-logs" as string;
+export const DEPLOYMENT_MANAGER_URL=import.meta.env.VITE_DEPLOYMENT_MANAGER_URL || "http://localhost:5051" as string;
 export const Frameworks = [
   { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
   { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },
