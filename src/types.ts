@@ -1,5 +1,6 @@
 import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
+export const API_URL=import.meta.env.BACKEND_URL as string;
 export const Frameworks = [
   { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
   { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },

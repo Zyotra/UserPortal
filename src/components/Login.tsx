@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import ZyotraLogo from './ZyotraLogo';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../types';
 const MicrosoftLogo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 21 21" className="mr-2">
     <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -17,12 +18,11 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      const response=await fetch("http://localhost:5050/login",{
+      const response=await fetch(`${API_URL}/login`,{
         method: "POST",
         credentials:"include",
         headers: {

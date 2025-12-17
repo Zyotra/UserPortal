@@ -5,7 +5,7 @@ import { FiLoader, FiArrowLeft, FiClock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ZyotraLogo from './ZyotraLogo';
 import apiClient from '../utils/apiClient';
-
+import { API_URL } from '../types';
 const MicrosoftLogo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 21 21" className="mr-2">
     <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -47,7 +47,7 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await apiClient('http://localhost:5050/send-otp', {
+      const res = await apiClient(`${API_URL}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
@@ -78,7 +78,7 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await apiClient('http://localhost:5050/register', {
+      const res = await apiClient(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, otp }),
