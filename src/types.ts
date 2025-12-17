@@ -1,4 +1,4 @@
-import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker } from 'react-icons/si';
+import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker, SiBun } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
 export const AUTH_API_URL=import.meta.env.VITE_BACKEND_URL || "http://localhost:5050" as string;
 export const WEB_SERVICE_DEPLOYMENT_URL=import.meta.env.VITE_WEBSERVICE_DEPLOYMENT_URL ||"http://localhost:5053" as string;
@@ -9,7 +9,7 @@ export const DEPLOYMENT_MANAGER_URL=import.meta.env.VITE_DEPLOYMENT_MANAGER_URL 
 export const Frameworks = [
   { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
   { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },
-  { value: 'elysia-js', label: 'Elysia JS', icon: SiNodedotjs, color: 'text-purple-500' },
+  { value: 'elysia-js', label: 'Elysia JS | Bun Runtime', icon: SiBun, color: 'text-purple-500' },
   { value: 'python', label: 'Python', icon: SiPython, color: 'text-blue-400' },
   { value: 'django', label: 'Django', icon: SiDjango, color: 'text-green-600' },
   { value: 'flask', label: 'Flask', icon: SiFlask, color: 'text-gray-300' },
@@ -30,7 +30,7 @@ export const Frameworks = [
 export const backendFrameworks = [
     { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
     { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },
-    {value:'elysia-js' , label:'Elysia JS', icon:SiNodedotjs, color:'text-purple-500'},
+    {value: 'elysia-js', label: 'Elysia JS | Bun Runtime', icon: SiBun, color: 'text-purple-500'},
     { value: 'python', label: 'Python', icon: SiPython, color: 'text-blue-400' },
     { value: 'django', label: 'Django', icon: SiDjango, color: 'text-green-600' },
     { value: 'flask', label: 'Flask', icon: SiFlask, color: 'text-gray-300' },

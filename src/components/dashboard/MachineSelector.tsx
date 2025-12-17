@@ -8,8 +8,9 @@ interface MachineType {
   vps_ip: string;
   vps_name: string;
   vps_region?: string;
-  vps_cpu?: string;
-  vps_ram?: string;
+  cpu_cores?: string;
+  ram?: string;
+  storage?: string;
   vps_status?: string;
 }
 
@@ -195,14 +196,12 @@ const MachineSelector = ({ onSelect, onClose }: MachineSelectorProps) => {
                     
                     <div className="flex items-center gap-6 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
-                        <FiCpu /> {machine.vps_cpu}
+                        <FiCpu /> {machine.cpu_cores}
                       </div>
                       <div className="flex items-center gap-2">
-                        <FiActivity /> {machine.vps_ram}
+                        <FiActivity /> {machine.ram}
                       </div>
-                      <div className={`px-2 py-1 rounded text-xs ${machine.vps_status === 'Running' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'}`}>
-                        {machine.vps_status}
-                      </div>
+                      <FiDatabase /> {machine.storage} GB
                     </div>
                   </button>
                 ))
