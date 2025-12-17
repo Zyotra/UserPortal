@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi';
+import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader, FiCode } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import { WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
-
+import { Frameworks } from '../../types';
 interface Project {
   id: number;
   vpsIp: string;
@@ -11,6 +11,7 @@ interface Project {
   repoUrl: string;
   domain: string;
   logs: string;
+  framework: string;
   deploymentId: string;
   status: string;
   createdAt: string;
@@ -76,7 +77,14 @@ const Projects = () => {
       default: return 'bg-gray-500';
     }
   };
-
+  const getProjectIcon=(project:Project)=>{
+    const item=Frameworks.find(f=>f.value==project.framework);
+    if(item){
+      const IconComponent = item.icon;
+      return <IconComponent className={`text-2xl ${item.color}`} />
+    }
+    return <FiCode className="text-2xl text-gray-400" />;
+  }
   const getStatusIcon = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'SUCCESS': return <FiCheckCircle />;
@@ -151,8 +159,8 @@ const Projects = () => {
                     <div className="flex items-start gap-4">
                       {/* Status Indicator */}
                       <div className="flex-shrink-0 mt-1">
-                        <div className={`w-10 h-10 rounded-lg ${getStatusColor(project.status)} bg-opacity-10 border border-current flex items-center justify-center text-lg`}>
-                          {getStatusIcon(project.status)}
+                        <div className={`w-10 h-10 rounded-lg bg-opacity-10 border border-current flex items-center justify-center text-lg`}>
+                          {getProjectIcon(project)}
                         </div>
                       </div>
                       
@@ -166,7 +174,7 @@ const Projects = () => {
                             className="text-lg font-semibold text-white hover:text-gray-300 transition-colors flex items-center gap-2 group/link"
                           >
                             <span className="truncate">{project.domain}</span>
-                            <FiExternalLink className="text-sm flex-shrink-0 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                           <FiExternalLink className="text-sm flex-shrink-0 opacity-0 group-hover/link:opacity-100 transition-opacity" />
                           </a>
                           <div className="flex items-center gap-2">
                             <span className={`w-2 h-2 rounded-full ${getStatusColor(project.status)} ${project.status === 'BUILDING' ? 'animate-pulse' : ''}`} />

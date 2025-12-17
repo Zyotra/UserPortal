@@ -137,7 +137,8 @@ const Domains = () => {
                 <td className="px-6 py-4 text-right">
                   <button 
                     onClick={() => setDeleteId(domain.id)}
-                    className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-red-500 transition-colors"
+                    disabled={domain.isDeployed}
+                    className={"p-2 hover:bg-[#222] border-2 rounded-md text-gray-400 hover:text-red-500 transition-colors" + (domain.isDeployed ? " opacity-50 cursor-not-allowed" : "")}
                     title="Delete Domain"
                   >
                     <FiTrash2 />
