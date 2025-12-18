@@ -49,6 +49,10 @@ const Overview = () => {
       navigate('/new-project', { state: { vpsId: machine.id } });
     } else if (serviceType === 'ui') {
       navigate('/deploy-ui', { state: { vpsId: machine.id } });
+    } else if (serviceType === 'database') {
+        navigate('/deploy-database', { state: { vpsId: machine.id,vpsIp:machine.vps_ip } });
+    }else if (serviceType === 'caching') {
+        navigate('/deploy-caching', { state: { vpsId: machine.id,vpsIp:machine.vps_ip } });
     } else {
       // For database and caching, show a coming soon message or handle accordingly
       alert(`${serviceType} deployment coming soon!`);
@@ -57,7 +61,7 @@ const Overview = () => {
 
   async function fetchProjects() {
     try {
-      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}`, {
+      const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/get-projects`, {
         method: "GET",
       });
       const data = await res.json();

@@ -57,7 +57,7 @@ const MachineSelector = ({ onSelect, onClose }: MachineSelectorProps) => {
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
       borderColor: 'border-green-500/20',
-      isAvailable: false,
+      isAvailable: true,
     },
     {
       type: 'caching' as ServiceType,

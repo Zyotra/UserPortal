@@ -6,6 +6,7 @@ import Register from './components/Register'
 import Dashboard from './pages/dashboard'
 import AddProject from './components/dashboard/AddProject'
 import DeployUI from './components/dashboard/DeployUI'
+import DeployDB from "./components/dashboard/deployDB.tsx";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/new-project" element={<AddProject />} />
         <Route path="/deploy-ui" element={<DeployUI />} />
+        <Route path="deploy-database" element={<DeployDB/>}  />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

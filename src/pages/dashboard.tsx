@@ -1,6 +1,21 @@
 import { useEffect, useState, useRef } from 'react';
 import ZyotraLogo from '../components/ZyotraLogo';
-import { FiChevronDown, FiLogOut, FiUser, FiSettings, FiGrid, FiServer, FiFolder, FiGlobe, FiPackage, FiActivity, FiCreditCard, FiSliders, FiCommand } from 'react-icons/fi';
+import {
+    FiChevronDown,
+    FiLogOut,
+    FiUser,
+    FiSettings,
+    FiGrid,
+    FiServer,
+    FiFolder,
+    FiGlobe,
+    FiPackage,
+    FiActivity,
+    FiCreditCard,
+    FiSliders,
+    FiCommand,
+    FiDatabase
+} from 'react-icons/fi';
 import Overview from '../components/dashboard/Overview';
 import VPSMachines from '../components/dashboard/VPSMachines';
 import Projects from '../components/dashboard/Projects';
@@ -11,6 +26,7 @@ import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
 import apiClient from '../utils/apiClient';
 import { AUTH_API_URL } from '../types';
+import Databases from "../components/dashboard/Databases.tsx";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
@@ -25,6 +41,7 @@ const Dashboard = () => {
     { name: 'Overview', icon: FiGrid },
     { name: 'VPS Machines', icon: FiServer },
     { name: 'Projects', icon: FiFolder },
+      {name:"Databases", icon: FiDatabase},
     { name: 'Domains', icon: FiGlobe },
     { name: 'Deployments', icon: FiPackage },
     { name: 'Activity', icon: FiActivity },
@@ -80,6 +97,8 @@ const Dashboard = () => {
         return <VPSMachines />;
       case 'Projects':
         return <Projects />;
+      case "Databases":
+          return <Databases />;
       case 'Domains':
         return <Domains />;
       case 'Deployments':
