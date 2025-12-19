@@ -57,7 +57,7 @@ const Dashboard = () => {
       const res = await apiClient(`${AUTH_API_URL}/dashboard`, { method: "GET" });
 
       if (res.status !== 200) {
-        // Not authenticated → redirect
+        console.log('User not authenticated, redirecting to login.');
         window.location.href = '/login';
         return;
       }

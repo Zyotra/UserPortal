@@ -13,9 +13,9 @@ export const useSocket = (machineId: string,projectType:string) => {
         const token = localStorage.getItem("accessToken");
         let WS_URL=""
         if(projectType =="webservice"){
-            WS_URL = (WS_URL_WEBSERVICE) + `?machineId=${machineId}&token=${token}`;
+            WS_URL = (WS_URL_WEBSERVICE) + `/deploy-logs?machineId=${machineId}&token=${token}`;
         }else if(projectType =="ui"){
-            WS_URL = (WS_URL_UI) + `?machineId=${machineId}&token=${token}`;
+            WS_URL = (WS_URL_UI) + `/deploy-logs?machineId=${machineId}&token=${token}`;
         }else{
             console.error("Invalid project type for WebSocket connection");
             return;
