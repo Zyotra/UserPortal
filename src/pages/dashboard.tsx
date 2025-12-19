@@ -49,33 +49,46 @@ const Dashboard = () => {
     { name: 'Settings', icon: FiSliders }
   ];
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      setLoading(true);
-      const res=await apiClient(`${AUTH_API_URL}/dashboard`, {
-        method: "GET",
-      });
-      const data=await res.json();
-      console.log('User profile data:', data);
+ useEffect(() => {
+  const fetchUserProfile = async () => {
+    setLoading(true);
+
+    try {
+      const res = await apiClient(`${AUTH_API_URL}/dashboard`, { method: "GET" });
+
       if (res.status !== 200) {
+        // Not authenticated → redirect
         window.location.href = '/login';
+        return;
       }
+
+      const data = await res.json();
+
+      // Only set state if authenticated
       setEmail(data.userEmail);
       setName(data.userName);
+    } catch (err) {
+      console.error(err);
+      window.location.href = '/login';
+    } finally {
       setLoading(false);
     }
-    fetchUserProfile();
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
-        setShowProfileMenu(false);
-      }
-    };
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  fetchUserProfile();
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+      setShowProfileMenu(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
