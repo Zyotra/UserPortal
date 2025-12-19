@@ -18,31 +18,34 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const handleContinue = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const response=await fetch(`${AUTH_API_URL}/login`,{
-        method: "POST",
-        credentials:"include",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
-      const data=await response.json();
-      console.log(data)
-      if(data.accessToken){
-        localStorage.setItem('accessToken', data.accessToken);
-        navigate('/dashboard');
-      } else {
-        setError(data.message || 'Invalid email or password. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to connect to server. Please check your connection.');
+const handleContinue = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    const response = await fetch(`${AUTH_API_URL}/login`, {
+      method: "POST",
+      credentials: "include", // must include cookies
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      setError(errorData.message || 'Invalid email or password.');
+      return;
     }
-  };
+
+    // No need to store token in localStorage
+    // Cookie is already set by backend
+    navigate('/dashboard');
+
+  } catch (err) {
+    console.error(err);
+    setError('Failed to connect to server. Please check your connection.');
+  }
+};
+
   useEffect(() => {
     const token=localStorage.getItem('accessToken');
     if(token){
