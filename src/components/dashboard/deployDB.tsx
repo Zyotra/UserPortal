@@ -14,11 +14,11 @@ const DeployDB = () => {
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedDb, setSelectedDb] = useState('');
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [responseMessage, setResponseMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const machineId = location.state?.vpsId || '';
   const machineIp = location.state?.vpsIp || '';
-  console.log("DeployDB machineId:", machineId);
-  console.log("DeployDB machineIp:", machineIp);
 
   useEffect(() => {
     if (!machineId) {
@@ -65,12 +65,23 @@ const DeployDB = () => {
     e.preventDefault();
     setLoading(true);
     setDeploymentStatus('deploying');
+    setResponseMessage(null);
+    setLoadingMessage('Initializing database creation...');
+    
     const payload = {
       ...formData,
       dbType: selectedDb,
     };
 
     try {
+      // Simulate progress updates
+      setTimeout(() => setLoadingMessage('Connecting to VPS machine...'), 500);
+      setTimeout(() => setLoadingMessage('Installing database software...'), 1500);
+      setTimeout(() => setLoadingMessage('Configuring database settings...'), 2500);
+      setTimeout(() => setLoadingMessage('Creating database instance...'), 3500);
+      setTimeout(() => setLoadingMessage('Setting up user credentials...'), 4500);
+      setTimeout(() => setLoadingMessage('Finalizing deployment...'), 5500);
+
       const response = await apiClient('http://localhost:5062/deploy-postgres', {
         method: 'POST',
         body: JSON.stringify(payload),
@@ -79,20 +90,52 @@ const DeployDB = () => {
       const data = await response.json();
 
       if (response.ok) {
+        setLoadingMessage('Database created successfully!');
+        setResponseMessage({
+          type: 'success',
+          message: data.message || 'Database has been created successfully. You can now use it in your applications.'
+        });
         setLogs(prev => [...prev, 'Database deployed successfully!', `Connection string: ${data.connectionString || 'Available in dashboard'}`]);
         setDeploymentStatus('success');
-        setLoading(false);
+        
+        // Auto-hide loading modal after showing success message
+        setTimeout(() => {
+          setLoading(false);
+          setShowTerminal(true);
+        }, 2000);
       } else {
-        console.error('Failed to deploy database');
-        setLogs(prev => [...prev, `Error: ${data.message || 'Failed to deploy database'}`]);
+        setLoadingMessage('Database creation failed');
+        const errorMsg = data.message || data.error || 'Failed to deploy database. Please check your configuration and try again.';
+        setResponseMessage({
+          type: 'error',
+          message: errorMsg
+        });
+        setLogs(prev => [...prev, `Error: ${errorMsg}`]);
         setDeploymentStatus('failed');
-        setLoading(false);
+        
+        // Keep modal open for error so user can see the message
+        setTimeout(() => {
+          setLoading(false);
+        }, 3000);
       }
     } catch (error) {
       console.error('Error deploying database:', error);
-      setLogs(prev => [...prev, `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`]);
+      setLoadingMessage('Database creation failed');
+      const errorMsg = error instanceof Error 
+        ? `Network error: ${error.message}. Please check your connection and try again.`
+        : 'An unexpected error occurred. Please try again later.';
+      
+      setResponseMessage({
+        type: 'error',
+        message: errorMsg
+      });
+      setLogs(prev => [...prev, `Error: ${errorMsg}`]);
       setDeploymentStatus('failed');
-      setLoading(false);
+      
+      // Keep modal open for error
+      setTimeout(() => {
+        setLoading(false);
+      }, 3000);
     }
   };
 
@@ -166,6 +209,92 @@ const DeployDB = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12">
+      {/* Loading Modal */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="bg-[#111] border border-[#333] rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+            <div className="flex flex-col items-center text-center">
+              {/* Animated Spinner */}
+              <div className="relative mb-6">
+                <div className="w-20 h-20 border-4 border-[#333] rounded-full"></div>
+                <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <FiDatabase className="text-purple-500 text-2xl animate-pulse" />
+                </div>
+              </div>
+
+              {/* Loading Message */}
+              <h3 className="text-xl font-bold text-white mb-2">
+                {deploymentStatus === 'deploying' ? 'Creating Database' : 
+                 deploymentStatus === 'success' ? 'Database Created!' : 
+                 'Creation Failed'}
+              </h3>
+              
+              <p className="text-gray-400 text-sm mb-6 min-h-[20px]">
+                {loadingMessage}
+              </p>
+
+              {/* Progress Indicator */}
+              {deploymentStatus === 'deploying' && (
+                <div className="w-full bg-[#222] rounded-full h-2 mb-6 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                </div>
+              )}
+
+              {/* Response Message */}
+              {responseMessage && (
+                <div className={`w-full p-4 rounded-xl mb-6 border ${
+                  responseMessage.type === 'success' 
+                    ? 'bg-green-500/10 border-green-500/30' 
+                    : 'bg-red-500/10 border-red-500/30'
+                } animate-in slide-in-from-bottom-2 duration-300`}>
+                  <div className="flex items-start gap-3">
+                    {responseMessage.type === 'success' ? (
+                      <FiCheckCircle className="text-green-500 text-xl flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <FiXCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+                    )}
+                    <p className={`text-sm text-left ${
+                      responseMessage.type === 'success' ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {responseMessage.message}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              {responseMessage && (
+                <div className="flex gap-3 w-full">
+                  {responseMessage.type === 'success' ? (
+                    <button
+                      onClick={() => {
+                        setLoading(false);
+                        setShowTerminal(true);
+                      }}
+                      className="flex-1 bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
+                    >
+                      View Details
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setLoading(false);
+                        setResponseMessage(null);
+                        setLoadingMessage('');
+                      }}
+                      className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
+                    >
+                      Try Again
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard')}
@@ -197,11 +326,12 @@ const DeployDB = () => {
                     key={db.value}
                     type="button"
                     onClick={() => setSelectedDb(db.value)}
+                    disabled={loading}
                     className={`relative p-6 rounded-xl border-2 transition-all text-left ${
                       selectedDb === db.value
                         ? 'border-white bg-white/5 shadow-lg'
                         : 'border-[#333] hover:border-gray-500 bg-black'
-                    }`}
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-3 rounded-lg bg-gradient-to-br ${
@@ -243,7 +373,8 @@ const DeployDB = () => {
                   value={formData.dbName}
                   onChange={handleInputChange}
                   placeholder="myapp_database"
-                  className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
+                  disabled={loading}
+                  className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   required
                 />
                 <p className="text-xs text-gray-500">
@@ -262,7 +393,8 @@ const DeployDB = () => {
                     value={formData.userName}
                     onChange={handleInputChange}
                     placeholder="admin"
-                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
+                    disabled={loading}
+                    className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     required
                   />
                 </div>
@@ -278,7 +410,8 @@ const DeployDB = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="your password"
-                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 pr-12 text-sm focus:outline-none focus:border-white transition-colors text-white"
+                      disabled={loading}
+                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 pr-12 text-sm focus:outline-none focus:border-white transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       required
                     />
                     <button

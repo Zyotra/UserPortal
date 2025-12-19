@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch, FiDatabase } from 'react-icons/fi';
 import { backendFrameworks, DEPLOYMENT_MANAGER_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
@@ -388,6 +388,23 @@ const AddProject = () => {
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <FiCommand className="text-gray-400" /> Build & Output Settings
             </h2>
+
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-[#08101a] to-[#071018] border border-[#1f2937] p-4 rounded-lg shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 bg-indigo-700/10 rounded-md p-2">
+                      <FiDatabase className="text-indigo-400" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-100 font-semibold">Before you deploy — run your database migrations</p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Apply any pending database migrations prior to deployment to avoid runtime schema errors. Start migrations and copy the database connection string from the Databases section in the dashboard.
+                      </p>
+                      <p className="mt-2 text-xs text-gray-400">If you manage multiple environments, ensure the connection string targets the intended environment (staging/production) before proceeding.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
