@@ -7,8 +7,9 @@ import { DEPLOYMENT_MANAGER_URL } from '../../types';
 import ConfirmationModal from './ConfirmationModal';
 
 interface Database {
-  id: number;
+  id: number | string;
   host: string;
+  vpsId:string
   username: string;
   dbName: string;
   password: string;
@@ -48,7 +49,7 @@ const Databases = () => {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   // Mock data for tables
-  const mockTables = ['users', 'products', 'orders', 'categories', 'profiles'];
+  const [tablesList,setTablesList]=useState<string[]>([])
   const mockTableData = {
     'users': [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
@@ -59,7 +60,21 @@ const Databases = () => {
       { id: 2, name: 'Phone', price: 499 }
     ]
   };
-
+  const fetchTableList = async (databaseName: string,vpsId: string,vpsIp: string) => {
+    try {
+      const res = await apiClient(`http://localhost:5062/get-tables-list`, {
+        method: "POST",
+        body: JSON.stringify({ databaseName: databaseName, vpsId: vpsId, vpsIp: vpsIp }),
+      });
+      const data = await res.json();
+      console.log("Tables data: ",data);
+      if (data.data) {
+        setTablesList(data.data)
+      }
+    } catch (error) {
+      console.error("Error fetching table list:", error);
+    }
+  }
   const handleRunQuery = async () => {
     setIsExecuting(true);
     // Simulate query execution
@@ -84,6 +99,7 @@ const Databases = () => {
       const data = await res.json();
       if (data.data) {
         setDatabases(data.data);
+        console.log(data.data)
       }
     } catch (error) {
       console.error("Error fetching databases:", error);
@@ -243,7 +259,7 @@ const Databases = () => {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              copyToClipboard(database.host, database.id);
+                              copyToClipboard(database.host, database.id as number);
                             }}
                             className="text-gray-600 hover:text-white transition-colors"
                           >
@@ -397,7 +413,12 @@ const Databases = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => {
+                    setActiveTab(tab.id as any)
+                    if(tab.id === 'tables'){
+                      fetchTableList(selectedDbForDetails.dbName,selectedDbForDetails.vpsId as string,selectedDbForDetails.host);
+                    }
+                  }}
                   className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all relative ${
                     activeTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                   }`}
@@ -456,7 +477,7 @@ const Databases = () => {
                                 {selectedDbForDetails.host}
                               </code>
                               <button 
-                                onClick={() => copyToClipboard(selectedDbForDetails.host, selectedDbForDetails.id)}
+                                onClick={() => copyToClipboard(selectedDbForDetails.host, selectedDbForDetails.id as number)}
                                 className="text-gray-500 hover:text-white transition-colors"
                               >
                                 {copiedId === selectedDbForDetails.id ? <FiCheck className="text-green-500" size={14} /> : <FiCopy size={14} />}
@@ -514,11 +535,11 @@ const Databases = () => {
                                                  selectedDbForDetails.dbType.toLowerCase();
                                   const host = connectionType === 'localhost' ? 'localhost' : selectedDbForDetails.host;
                                   const connStr = `${protocol}://${selectedDbForDetails.username}:${selectedDbForDetails.password}@${host}/${selectedDbForDetails.dbName}`;
-                                  copyToClipboard(connStr, selectedDbForDetails.id + 1000);
+                                  copyToClipboard(connStr, (selectedDbForDetails.id) as number + 1000);
                                 }}
                                 className="p-2 bg-[#111] border border-[#222] rounded-lg text-gray-500 hover:text-white transition-colors"
                               >
-                                {copiedId === selectedDbForDetails.id + 1000 ? <FiCheck className="text-green-500" size={14} /> : <FiCopy size={14} />}
+                                {copiedId === (selectedDbForDetails.id) as number + 1000 ? <FiCheck className="text-green-500" size={14} /> : <FiCopy size={14} />}
                               </button>
                             </div>
                           </div>
@@ -544,7 +565,10 @@ const Databases = () => {
                           </button>
                           <button 
                             className="w-full flex items-center justify-between px-4 py-3 bg-[#111] hover:bg-[#161616] border border-[#222] rounded-xl text-xs text-gray-300 transition-all group"
-                            onClick={() => setActiveTab('tables')}
+                            onClick={() => { 
+                              setActiveTab('tables');
+                              fetchTableList(selectedDbForDetails.dbName,selectedDbForDetails.vpsId.toString(),selectedDbForDetails.host);
+                            }}
                           >
                             <span className="flex items-center gap-2">
                               <FiTable className="text-green-400" /> Browse Tables
@@ -587,10 +611,12 @@ const Databases = () => {
                       <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Public Tables</h4>
                     </div>
                     <div className="flex-1 overflow-y-auto">
-                      {mockTables.map(table => (
+                      {tablesList.map(table => (
                         <button
                           key={table}
-                          onClick={() => setSelectedTable(table)}
+                          onClick={() => {
+                            setSelectedTable(table);
+                          }}
                           className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-[#111] last:border-0 ${
                             selectedTable === table ? 'bg-white/5 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
                           }`}
