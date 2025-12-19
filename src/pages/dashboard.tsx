@@ -50,17 +50,10 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      window.location.href = '/login';
-    }
     const fetchUserProfile = async () => {
       setLoading(true);
       const res=await apiClient(`${AUTH_API_URL}/dashboard`, {
         method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
       });
       const data=await res.json();
       console.log('User profile data:', data);
