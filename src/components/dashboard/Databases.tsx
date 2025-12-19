@@ -314,7 +314,7 @@ const Databases = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                            <div className={`w-1.5 h-1.5 rounded-full ${
-                            database.status === 'RUNNING' || database.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                            database.status === 'RUNNING' || database.status === 'active' ? 'bg-green-500' : 'bg-green-500'
                           }`}></div>
                           <span className="text-xs text-gray-400">{database.status || 'Active'}</span>
                         </div>
@@ -344,6 +344,7 @@ const Databases = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
+          setIsDetailsModalOpen(false);
           setDbToDelete(null);
         }}
         onConfirm={handleDelete}

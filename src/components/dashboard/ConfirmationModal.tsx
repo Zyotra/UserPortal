@@ -24,7 +24,7 @@ const ConfirmationModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-[#111] border border-[#333] rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all">
         <div className="flex items-center gap-3 mb-4">
           {isDangerous && (

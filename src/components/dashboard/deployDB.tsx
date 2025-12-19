@@ -97,12 +97,7 @@ const DeployDB = () => {
         });
         setLogs(prev => [...prev, 'Database deployed successfully!', `Connection string: ${data.connectionString || 'Available in dashboard'}`]);
         setDeploymentStatus('success');
-        
-        // Auto-hide loading modal after showing success message
-        setTimeout(() => {
-          setLoading(false);
-          setShowTerminal(true);
-        }, 2000);
+        // Keep modal open - user will click button to close
       } else {
         setLoadingMessage('Database creation failed');
         const errorMsg = data.message || data.error || 'Failed to deploy database. Please check your configuration and try again.';
@@ -112,11 +107,7 @@ const DeployDB = () => {
         });
         setLogs(prev => [...prev, `Error: ${errorMsg}`]);
         setDeploymentStatus('failed');
-        
-        // Keep modal open for error so user can see the message
-        setTimeout(() => {
-          setLoading(false);
-        }, 3000);
+        // Keep modal open - user will click button to close
       }
     } catch (error) {
       console.error('Error deploying database:', error);
@@ -131,11 +122,7 @@ const DeployDB = () => {
       });
       setLogs(prev => [...prev, `Error: ${errorMsg}`]);
       setDeploymentStatus('failed');
-      
-      // Keep modal open for error
-      setTimeout(() => {
-        setLoading(false);
-      }, 3000);
+      // Keep modal open - user will click button to close
     }
   };
 
@@ -267,21 +254,37 @@ const DeployDB = () => {
               {responseMessage && (
                 <div className="flex gap-3 w-full">
                   {responseMessage.type === 'success' ? (
-                    <button
-                      onClick={() => {
-                        setLoading(false);
-                        setShowTerminal(true);
-                      }}
-                      className="flex-1 bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
-                    >
-                      View Details
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          setLoading(false);
+                          setResponseMessage(null);
+                          setLoadingMessage('');
+                          setShowTerminal(true);
+                        }}
+                        className="flex-1 bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLoading(false);
+                          setResponseMessage(null);
+                          setLoadingMessage('');
+                          navigate('/dashboard');
+                        }}
+                        className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
+                      >
+                        Go to Dashboard
+                      </button>
+                    </>
                   ) : (
                     <button
                       onClick={() => {
                         setLoading(false);
                         setResponseMessage(null);
                         setLoadingMessage('');
+                        setDeploymentStatus('idle');
                       }}
                       className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
                     >
