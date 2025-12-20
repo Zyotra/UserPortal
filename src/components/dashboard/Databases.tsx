@@ -102,19 +102,58 @@ const Databases = () => {
     }
   };
   const handleRunQuery = async () => {
+    if (!selectedDbForDetails || !query.trim()) {
+      return;
+    }
+
     setIsExecuting(true);
-    // Simulate query execution
-    setTimeout(() => {
+    setQueryResult(null);
+
+    try {
+      const res = await apiClient(
+        `${STORAGE_LAYER_DEPOYMENT_URL}/run-query`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            databaseName: selectedDbForDetails.dbName,
+            vpsId: selectedDbForDetails.vpsId,
+            vpsIp: selectedDbForDetails.host,
+            username: selectedDbForDetails.username,
+            query: query,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Set the query result with the API response
+        setQueryResult({
+          status: "success",
+          rows: data.data || data.rows || [],
+          executionTime: data.executionTime || "0ms",
+          message: data.message,
+        });
+      } else {
+        // Handle error response
+        setQueryResult({
+          status: "error",
+          rows: [],
+          executionTime: "0ms",
+          message: data.message || data.error || "Failed to execute query",
+        });
+      }
+    } catch (error) {
+      console.error("Error executing query:", error);
       setQueryResult({
-        status: "success",
-        rows: [
-          { id: 1, column1: "Value 1", column2: "Value 2" },
-          { id: 2, column1: "Value 3", column2: "Value 4" },
-        ],
-        executionTime: "12ms",
+        status: "error",
+        rows: [],
+        executionTime: "0ms",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
       });
+    } finally {
       setIsExecuting(false);
-    }, 1000);
+    }
   };
 
   async function fetchDatabases() {
@@ -1057,7 +1096,7 @@ const Databases = () => {
                     </div>
                   </div>
 
-                  {queryResult && (
+                  {queryResult && queryResult.status === "success" && queryResult.rows && queryResult.rows.length > 0 && (
                     <div className="flex-1 bg-black border border-[#222] rounded-2xl overflow-hidden flex flex-col animate-in fade-in duration-500">
                       <div className="p-3 bg-[#111] border-b border-[#222] flex justify-between items-center">
                         <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
