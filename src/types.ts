@@ -6,6 +6,7 @@ export const UI_DEPLOYMENT_URL=import.meta.env.VITE_UI_DEPLOYMENT_URL || "http:/
 export const WS_URL_WEBSERVICE=import.meta.env.VITE_WS_URL_WEBSERVICE || "ws://localhost:5053" as string;
 export const WS_URL_UI=import.meta.env.VITE_WS_URL_UI || "ws://localhost:5056" as string;
 export const DEPLOYMENT_MANAGER_URL=import.meta.env.VITE_DEPLOYMENT_MANAGER_URL || "http://localhost:5051" as string;
+export const STORAGE_LAYER_DEPOYMENT_URL=import.meta.env.VITE_STORAGE_LAYER_DEPOYMENT_URL || "http://localhost:5062" as string;
 export const Frameworks = [
   { value: 'nodejs', label: 'Node.js', icon: SiNodedotjs, color: 'text-green-500' },
   { value: 'express', label: 'Express', icon: SiExpress, color: 'text-gray-300' },
