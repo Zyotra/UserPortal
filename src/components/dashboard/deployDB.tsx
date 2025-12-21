@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiServer, FiDatabase, FiTerminal, FiCheckCircle, FiXCircle, FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiArrowLeft, FiServer, FiDatabase, FiTerminal, FiCheckCircle, FiXCircle, FiUser, FiLock, FiEye, FiEyeOff, FiAlertTriangle } from 'react-icons/fi';
 import { SiPostgresql, SiMysql, SiMongodb, SiRedis } from 'react-icons/si';
 import apiClient from '../../utils/apiClient';
+import { STORAGE_LAYER_DEPOYMENT_URL } from '../../types';
 
 const DeployDB = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const DeployDB = () => {
   const [deploymentStatus, setDeploymentStatus] = useState<'idle' | 'deploying' | 'success' | 'failed'>('idle');
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRootPassword, setShowRootPassword] = useState(false);
   const [selectedDb, setSelectedDb] = useState('');
   const [loadingMessage, setLoadingMessage] = useState('');
   const [responseMessage, setResponseMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -33,6 +35,7 @@ const DeployDB = () => {
     dbName: '',
     userName: '',
     password: '',
+    rootPassword: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,10 +71,31 @@ const DeployDB = () => {
     setResponseMessage(null);
     setLoadingMessage('Initializing database creation...');
     
-    const payload = {
-      ...formData,
+    // Determine endpoint based on database type
+    let endpoint = '';
+    if (selectedDb === 'mysql') {
+      endpoint = `${STORAGE_LAYER_DEPOYMENT_URL}/deploy-mysql`;
+    } else if (selectedDb === 'postgres') {
+      endpoint = `${STORAGE_LAYER_DEPOYMENT_URL}/deploy-postgres`;
+    } else {
+      // For other database types, use postgres endpoint as fallback
+      endpoint = `${STORAGE_LAYER_DEPOYMENT_URL}/deploy-postgres`;
+    }
+
+    // Prepare payload - for MySQL include rootPassword
+    const payload: any = {
+      vpsId: formData.vpsId,
+      vpsIp: formData.vpsIp,
+      dbName: formData.dbName,
+      userName: formData.userName,
+      password: formData.password,
       dbType: selectedDb,
     };
+
+    // Add rootPassword for MySQL
+    if (selectedDb === 'mysql') {
+      payload.rootPassword = formData.rootPassword;
+    }
 
     try {
       // Simulate progress updates
@@ -82,7 +106,7 @@ const DeployDB = () => {
       setTimeout(() => setLoadingMessage('Setting up user credentials...'), 4500);
       setTimeout(() => setLoadingMessage('Finalizing deployment...'), 5500);
 
-      const response = await apiClient('http://localhost:5062/deploy-postgres', {
+      const response = await apiClient(endpoint, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
@@ -430,6 +454,44 @@ const DeployDB = () => {
                   </p>
                 </div>
               </div>
+
+              {/* MySQL Root Password Field */}
+              {selectedDb === 'mysql' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <FiLock /> MySQL Root Password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showRootPassword ? 'text' : 'password'}
+                      name="rootPassword"
+                      value={formData.rootPassword}
+                      onChange={handleInputChange}
+                      placeholder="MySQL root password"
+                      disabled={loading}
+                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 pr-12 text-sm focus:outline-none focus:border-white transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRootPassword(!showRootPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                    >
+                      {showRootPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                    <div className="flex items-start gap-2">
+                      <FiAlertTriangle className="text-yellow-500 text-sm mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-yellow-400">
+                        <strong>Important:</strong> If this is the first time deploying MySQL on this VPS, enter a new root password. 
+                        If MySQL has been deployed before on this VPS, use the existing root password. 
+                        Using an incorrect root password will cause deployment to fail.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="p-4 bg-[#0a0a0a] border border-[#222] rounded-xl">
                 <div className="flex items-start gap-3">
