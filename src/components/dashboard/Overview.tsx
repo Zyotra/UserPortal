@@ -77,7 +77,7 @@ const Overview = () => {
 
   async function fetchMachines() {
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`, {
         method: "GET",
       });
       const data = await res.json();

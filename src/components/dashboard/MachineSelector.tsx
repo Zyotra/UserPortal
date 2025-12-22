@@ -67,14 +67,14 @@ const MachineSelector = ({ onSelect, onClose }: MachineSelectorProps) => {
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
       borderColor: 'border-orange-500/20',
-      isAvailable: false,
+      isAvailable: true,
     },
   ];
   
   const fetchMachines = async () => {
     setLoading(true);
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`, {
         method: "GET",
       });
       const data = await res.json();

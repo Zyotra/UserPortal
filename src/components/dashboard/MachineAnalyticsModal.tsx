@@ -69,7 +69,7 @@ const MachineAnalyticsModal = ({ isOpen, onClose, machineId, machineName, machin
   const fetchMachineAnalytics = async () => {
     setLoading(true);
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machine-analytics/${machineId}`||`http://localhost:5051/get-machine-analytics/${machineId}`, {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machine-analytics/${machineId}`, {
         method: 'GET',
       });
       const data = await res.json();
