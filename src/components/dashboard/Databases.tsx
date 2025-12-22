@@ -3,16 +3,12 @@ import {
   FiSearch,
   FiGrid,
   FiList,
-  FiMoreHorizontal,
-  FiPlus,
   FiDatabase,
   FiActivity,
   FiTrash2,
   FiExternalLink,
   FiCopy,
   FiCheck,
-  FiCpu,
-  FiHardDrive,
   FiX,
   FiTerminal,
   FiPlay,
@@ -488,7 +484,7 @@ const Databases = () => {
       // Use MySQL-specific endpoint if database type is MySQL
       const endpoint = dbToDelete.dbType?.toLowerCase() === 'mysql'
         ? `${STORAGE_LAYER_DEPOYMENT_URL}/delete-mysql`
-        : `${STORAGE_LAYER_DEPOYMENT_URL}/${dbToDelete.id}`;
+        : `${STORAGE_LAYER_DEPOYMENT_URL}/delete-db/${dbToDelete.id}`;
       
       const payload: any = {
         vpsId: dbToDelete.vpsId,
