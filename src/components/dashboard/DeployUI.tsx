@@ -396,6 +396,13 @@ const DeployUI = () => {
                   className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white"
                   required
                 />
+                {/* Professional note placed near the repository URL input */}
+                <div className="mt-2 text-sm text-yellow-200 bg-yellow-900/80 border border-yellow-700 rounded-lg p-3 flex items-start gap-3">
+                  <FiGithub className="text-yellow-400 mt-1" size={18} />
+                  <div>
+                    <span className="font-semibold">Important:</span> If you are deploying from a <span className="font-semibold">private GitHub repository</span>, ensure the target VPS is authenticated with GitHub. Authenticate via <span className="font-semibold">VPS Machines → Action Buttons → Authenticate GitHub</span> using your GitHub username and a classic personal access token. Without this, repository cloning will fail.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
