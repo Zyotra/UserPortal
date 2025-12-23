@@ -356,7 +356,7 @@ const Databases = () => {
 
   async function fetchDatabases() {
     try {
-      const res = await apiClient(`http://localhost:5062/get-db`, {
+      const res = await apiClient(`${STORAGE_LAYER_DEPOYMENT_URL}/get-db`, {
         method: "GET",
       });
       const data = await res.json();
