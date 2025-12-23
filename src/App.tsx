@@ -8,6 +8,7 @@ import AddProject from './components/dashboard/AddProject'
 import DeployUI from './components/dashboard/DeployUI'
 import DeployDB from "./components/dashboard/deployDB.tsx";
 import DeployCaching from "./components/dashboard/deployCaching.tsx";
+import ProtectedRoute from "./components/ProtectedRoutes.tsx";
 
 function App() {
     return (
@@ -16,7 +17,11 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/register" element={<Register/>}/>
-                <Route path="/dashboard" element={<Dashboard/>}/>
+                <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                    <Dashboard/>
+                    </ProtectedRoute>
+                }/>
                 <Route path="/new-project" element={<AddProject/>}/>
                 <Route path="/deploy-ui" element={<DeployUI/>}/>
                 <Route path="deploy-database" element={<DeployDB/>}/>

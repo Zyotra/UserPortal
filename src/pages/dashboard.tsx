@@ -1,4 +1,5 @@
-import {useEffect, useState, useRef} from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ZyotraLogo from '../components/ZyotraLogo';
 import {
     FiChevronDown,
@@ -16,6 +17,7 @@ import {
     FiCommand,
     FiDatabase
 } from 'react-icons/fi';
+import { MdCached } from 'react-icons/md';
 import Overview from '../components/dashboard/Overview';
 import VPSMachines from '../components/dashboard/VPSMachines';
 import Projects from '../components/dashboard/Projects';
@@ -24,55 +26,51 @@ import Deployments from '../components/dashboard/Deployments';
 import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
-import apiClient from '../utils/apiClient';
-import {AUTH_API_URL} from '../types';
-import Databases from "../components/dashboard/Databases.tsx";
-import {MdCached} from "react-icons/md";
+import Databases from '../components/dashboard/Databases';
 import CacheMemory from "../components/dashboard/cacheMemory.tsx";
+import apiClient from '../utils/apiClient';
+import { AUTH_API_URL } from '../types';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('Overview');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Start with loading true
     const profileMenuRef = useRef<HTMLDivElement>(null);
 
     const navItems = [
-        {name: 'Overview', icon: FiGrid},
-        {name: 'VPS Machines', icon: FiServer},
-        {name: 'Projects', icon: FiFolder},
-        {name: "Databases", icon: FiDatabase},
-        {name: "Cache Memory", icon: MdCached},
-        {name: 'Domains', icon: FiGlobe},
-        {name: 'Deployments', icon: FiPackage},
-        {name: 'Activity', icon: FiActivity},
-        {name: 'Billings', icon: FiCreditCard},
-        {name: 'Settings', icon: FiSliders}
+        { name: 'Overview', icon: FiGrid },
+        { name: 'VPS Machines', icon: FiServer },
+        { name: 'Projects', icon: FiFolder },
+        { name: 'Databases', icon: FiDatabase },
+        { name: 'Cache Memory', icon: MdCached },
+        { name: 'Domains', icon: FiGlobe },
+        { name: 'Deployments', icon: FiPackage },
+        { name: 'Activity', icon: FiActivity },
+        { name: 'Billings', icon: FiCreditCard },
+        { name: 'Settings', icon: FiSliders }
     ];
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            setLoading(true);
-
             try {
-                const res = await apiClient(`${AUTH_API_URL}/dashboard`, {method: "GET"});
+                const res = await apiClient(`${AUTH_API_URL}/dashboard`, { method: 'GET' });
 
                 if (res.status !== 200) {
                     console.log('User not authenticated, redirecting to login.');
-                    window.location.href = '/login';
+                    navigate('/login');
                     return;
                 }
 
                 const data = await res.json();
-
-                // Only set state if authenticated
                 setEmail(data.userEmail);
                 setName(data.userName);
             } catch (err) {
                 console.error(err);
-                window.location.href = '/login';
+                navigate('/login');
             } finally {
                 setLoading(false);
             }
@@ -90,38 +88,37 @@ const Dashboard = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
-
+    }, [navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+        navigate('/login');
     };
 
     const renderContent = () => {
         switch (activeTab) {
             case 'Overview':
-                return <Overview/>;
+                return <Overview />;
             case 'VPS Machines':
-                return <VPSMachines/>;
+                return <VPSMachines />;
             case 'Projects':
-                return <Projects/>;
-            case "Databases":
-                return <Databases/>;
-            case "Cache Memory":
-                return <CacheMemory/>;
+                return <Projects />;
+            case 'Databases':
+                return <Databases />;
+            case 'Cache Memory':
+                return <CacheMemory />;
             case 'Domains':
-                return <Domains/>;
+                return <Domains />;
             case 'Deployments':
-                return <Deployments/>;
+                return <Deployments />;
             case 'Activity':
-                return <Activity/>;
+                return <Activity />;
             case 'Billings':
-                return <Billings/>;
+                return <Billings />;
             case 'Settings':
-                return <Settings/>;
+                return <Settings />;
             default:
-                return <Overview/>;
+                return <Overview />;
         }
     };
 
@@ -130,32 +127,20 @@ const Dashboard = () => {
             <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
                 <div className="text-center">
                     <div className="relative">
-                        {/* Outer rotating ring */}
-                        <div
-                            className="w-20 h-20 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
-
-                        {/* Inner pulsing circle */}
+                        <div className="w-20 h-20 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div
-                                className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full animate-pulse"></div>
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full animate-pulse"></div>
                         </div>
-
-                        {/* Logo in center */}
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <ZyotraLogo className="w-8 h-8"/>
+                            <ZyotraLogo className="w-8 h-8" />
                         </div>
                     </div>
-
-                    {/* Loading text */}
                     <div className="mt-6 space-y-2">
                         <p className="text-white/90 font-medium">Loading Dashboard</p>
                         <div className="flex items-center justify-center gap-1">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"
-                                 style={{animationDelay: '0ms'}}></div>
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"
-                                 style={{animationDelay: '150ms'}}></div>
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"
-                                 style={{animationDelay: '300ms'}}></div>
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                         </div>
                     </div>
                 </div>
@@ -164,15 +149,13 @@ const Dashboard = () => {
     }
 
     return (
-
         <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-blue-900/30">
             {/* Top Header Bar */}
-            <header
-                className="fixed top-0 left-0 right-0 h-14 bg-black/40 backdrop-blur-xl border-b border-white/5 z-50">
+            <header className="fixed top-0 left-0 right-0 h-14 bg-black/40 backdrop-blur-xl border-b border-white/5 z-50">
                 <div className="h-full px-4 flex items-center justify-between">
                     {/* Left Section */}
                     <div className="flex items-center gap-3">
-                        <ZyotraLogo className="w-7 h-7"/>
+                        <ZyotraLogo className="w-7 h-7" />
                         <div className="h-6 w-[1px] bg-white/10"></div>
                         <div className="flex items-center gap-2 cursor-pointer group">
                             <span className="font-medium text-sm text-white/90">Zyotra</span>
@@ -182,21 +165,17 @@ const Dashboard = () => {
                     {/* Center Search */}
                     <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
                         <div className="relative w-full group">
-                            <div
-                                className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div
-                                className="relative flex items-center bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all">
-                                <FiCommand className="absolute left-3 text-gray-500 text-sm"/>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="relative flex items-center bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all">
+                                <FiCommand className="absolute left-3 text-gray-500 text-sm" />
                                 <input
                                     type="text"
                                     placeholder="Search or jump to..."
                                     className="bg-transparent py-2 pl-9 pr-20 text-sm focus:outline-none w-full placeholder-gray-500 text-white"
                                 />
                                 <div className="absolute right-2 flex items-center gap-1">
-                                    <kbd
-                                        className="bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-gray-400 font-mono">⌘</kbd>
-                                    <kbd
-                                        className="bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-gray-400 font-mono">K</kbd>
+                                    <kbd className="bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-gray-400 font-mono">⌘</kbd>
+                                    <kbd className="bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-[10px] text-gray-400 font-mono">K</kbd>
                                 </div>
                             </div>
                         </div>
@@ -204,40 +183,31 @@ const Dashboard = () => {
 
                     {/* Right Actions */}
                     <div className="flex items-center gap-2">
-
                         {/* Profile Menu */}
                         <div className="relative ml-2" ref={profileMenuRef}>
-
                             <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all group"
                             >
-
                                 <span className="text-sm font-medium text-white/90 hidden sm:block">{name}</span>
-                                <div
-                                    className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white ring-2 ring-white/10 group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all">
-                                    <FiUser className="text-base"/>
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white ring-2 ring-white/10 group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all">
+                                    <FiUser className="text-base" />
                                 </div>
-                                <FiChevronDown
-                                    className={`text-sm text-gray-400 hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`}/>
+                                <FiChevronDown className={`text-sm text-gray-400 hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
                             </button>
 
                             {showProfileMenu && (
-                                <div
-                                    className="absolute right-0 mt-2 w-64 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                                    <div
-                                        className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
+                                <div className="absolute right-0 mt-2 w-64 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                                    <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
                                         <p className="text-sm text-white font-semibold">{name}</p>
                                         <p className="text-xs text-gray-400 truncate mt-1">{email}</p>
                                     </div>
                                     <div className="py-2">
-                                        <button
-                                            className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-all">
-                                            <FiUser className="text-base"/> Profile
+                                        <button className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-all">
+                                            <FiUser className="text-base" /> Profile
                                         </button>
-                                        <button
-                                            className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-all">
-                                            <FiSettings className="text-base"/> Settings
+                                        <button className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-all">
+                                            <FiSettings className="text-base" /> Settings
                                         </button>
                                     </div>
                                     <div className="border-t border-white/10 py-2">
@@ -245,7 +215,7 @@ const Dashboard = () => {
                                             onClick={handleLogout}
                                             className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-3 transition-all"
                                         >
-                                            <FiLogOut className="text-base"/> Log Out
+                                            <FiLogOut className="text-base" /> Log Out
                                         </button>
                                     </div>
                                 </div>
@@ -256,16 +226,14 @@ const Dashboard = () => {
             </header>
 
             {/* Sidebar Navigation */}
-            <aside
-                className={`fixed left-0 top-14 bottom-0 bg-black/20 backdrop-blur-sm border-r border-white/5 z-40 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+            <aside className={`fixed left-0 top-14 bottom-0 bg-black/20 backdrop-blur-sm border-r border-white/5 z-40 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
                 <div className="h-full flex flex-col py-6">
                     {/* Toggle Button */}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                         className="absolute -right-3 top-8 w-6 h-6 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all"
                     >
-                        <FiChevronDown
-                            className={`text-xs transform transition-transform ${sidebarCollapsed ? 'rotate-90' : '-rotate-90'}`}/>
+                        <FiChevronDown className={`text-xs transform transition-transform ${sidebarCollapsed ? 'rotate-90' : '-rotate-90'}`} />
                     </button>
 
                     {/* Navigation Items */}
@@ -277,17 +245,17 @@ const Dashboard = () => {
                                 <button
                                     key={item.name}
                                     onClick={() => setActiveTab(item.name)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${isActive
-                                        ? 'bg-white/10 text-white shadow-lg'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${
+                                        isActive
+                                            ? 'bg-white/10 text-white shadow-lg'
+                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                                     title={sidebarCollapsed ? item.name : ''}
                                 >
                                     {isActive && (
-                                        <div
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
                                     )}
-                                    <Icon className={`text-lg flex-shrink-0 ${isActive ? 'text-blue-400' : ''}`}/>
+                                    <Icon className={`text-lg flex-shrink-0 ${isActive ? 'text-blue-400' : ''}`} />
                                     {!sidebarCollapsed && (
                                         <span className="text-sm font-medium">{item.name}</span>
                                     )}
@@ -302,13 +270,10 @@ const Dashboard = () => {
                     {/* Bottom Section */}
                     {!sidebarCollapsed && (
                         <div className="px-3 pt-4 border-t border-white/5">
-                            <div
-                                className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-white/10 rounded-lg p-4">
+                            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-white/10 rounded-lg p-4">
                                 <p className="text-xs font-semibold text-white mb-1">Upgrade to Pro</p>
-                                <p className="text-[10px] text-gray-400 leading-relaxed mb-3">Unlock advanced features
-                                    and priority support</p>
-                                <button
-                                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium py-1.5 rounded-md hover:shadow-lg hover:shadow-purple-500/30 transition-all">
+                                <p className="text-[10px] text-gray-400 leading-relaxed mb-3">Unlock advanced features and priority support</p>
+                                <button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium py-1.5 rounded-md hover:shadow-lg hover:shadow-purple-500/30 transition-all">
                                     Upgrade Now
                                 </button>
                             </div>

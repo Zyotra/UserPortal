@@ -85,7 +85,6 @@ const CacheMemory = () => {
             if (res.status == 200) {
                 const data = await res.json();
                 const redis = data.data;
-                console.log(redis)
                 setCacheServers(redis);
             } else {
                 console.error("Failed to fetch cache servers");
