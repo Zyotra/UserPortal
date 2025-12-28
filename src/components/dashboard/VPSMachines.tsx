@@ -7,15 +7,15 @@ import AddMachineModal from './AddMachineModal';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
-interface MachineType{
-  id:string,
-  vps_ip:string,
-  vps_name:string,
-  region?:string,
-  cpu_cores?:string,
-  ram?:string,
-  storage?:string,
-  vps_status?:string,
+interface MachineType {
+  id: string,
+  vps_ip: string,
+  vps_name: string,
+  region?: string,
+  cpu_cores?: string,
+  ram?: string,
+  storage?: string,
+  vps_status?: string,
 }
 
 const VPSMachines = () => {
@@ -40,7 +40,7 @@ const VPSMachines = () => {
 
   const fetchMachines = async () => {
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines`||"http://localhost:5051/get-machines", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines` || "http://localhost:5051/get-machines", {
         method: "GET",
       });
       const data = await res.json();
@@ -53,14 +53,14 @@ const VPSMachines = () => {
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchMachines();
-  },[])
+  }, [])
 
   const handleAddMachine = async (machineData: any) => {
     const loadingToast = toast.loading("Adding machine...");
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/add-machine`||"http://localhost:5051/add-machine", {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/add-machine` || "http://localhost:5051/add-machine", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ const VPSMachines = () => {
 
     const loadingToast = toast.loading("Deleting machine...");
     try {
-      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/delete-machine/${deleteId}`||`http://localhost:5051/delete-machine/${deleteId}`, {
+      const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/delete-machine/${deleteId}` || `http://localhost:5051/delete-machine/${deleteId}`, {
         method: "DELETE",
       });
 
@@ -103,7 +103,7 @@ const VPSMachines = () => {
   const handleGithubClick = async (machineId: string, machineName: string) => {
     setGithubModal({ isOpen: true, machineId, machineName });
     setLoadingGithub(true);
-    
+
     try {
       const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-github-auths/${machineId}`, {
         method: "GET",
@@ -135,7 +135,7 @@ const VPSMachines = () => {
 
     const loadingToast = toast.loading("Authenticating GitHub...");
     setLoadingGithub(true);
-    
+
     try {
       const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/authenticate-github/${githubModal.machineId}`, {
         method: "POST",
@@ -171,7 +171,7 @@ const VPSMachines = () => {
   const handleUnauthenticateGithub = async () => {
     const loadingToast = toast.loading("Removing GitHub authentication...");
     setLoadingGithub(true);
-    
+
     try {
       const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/unauthenticate-github/${githubModal.machineId}`, {
         method: "GET",
@@ -198,7 +198,7 @@ const VPSMachines = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">VPS Machines</h2>
-        <button 
+        <button
           onClick={() => setShowAddModal(true)}
           className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
         >
@@ -249,22 +249,22 @@ const VPSMachines = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4 text-xs">
                       <span className="flex items-center gap-1"><FiCpu /> {machine.cpu_cores}</span>
-                      <span className="flex items-center gap-1"><FiActivity /> {machine.ram+"GB"}</span>
+                      <span className="flex items-center gap-1"><FiActivity /> {machine.ram + "GB"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {machine.storage+"GB"}
+                    {machine.storage + "GB"}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => handleGithubClick(machine.id, machine.vps_name)}
                         className="p-2 hover:bg-purple-500/10 rounded-md text-gray-400 hover:text-purple-400 transition-all border border-[#333] hover:border-purple-500/50"
                         title="GitHub Authentication"
                       >
                         <FiGithub />
                       </button>
-                      <button 
+                      <button
                         onClick={() => setAnalyticsModal({
                           isOpen: true,
                           machineId: machine.id,
@@ -276,7 +276,8 @@ const VPSMachines = () => {
                       >
                         <FiEye />
                       </button>
-                      <button 
+                      <button
+                        disabled={true}
                         onClick={() => setDeleteId(machine.id)}
                         className="p-2 hover:bg-red-500/10 rounded-md text-gray-400 hover:text-red-500 transition-all border border-[#333] hover:border-red-500/50"
                         title="Delete Machine"
@@ -382,7 +383,7 @@ const VPSMachines = () => {
                       {showTokenSteps ? '▼' : '▶'}
                     </span>
                   </button>
-                  
+
                   {showTokenSteps && (
                     <div className="px-4 pb-4 space-y-3 border-t border-[#333] pt-4">
                       <div className="space-y-2 text-sm">

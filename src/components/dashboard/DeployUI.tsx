@@ -50,8 +50,11 @@ const DeployUI = () => {
     packageInstallerCommand: 'npm install',
     buildCommand: 'npm run build',
     outDir: 'dist',
-    domain: ''
+    domain: '',
+    sourceDir: ''
   });
+
+  const [hasSubDirectory, setHasSubDirectory] = useState(false);
 
   useEffect(() => {
     if (messages) {
@@ -402,6 +405,39 @@ const DeployUI = () => {
                   <div>
                     <span className="font-semibold">Important:</span> If you are deploying from a <span className="font-semibold">private GitHub repository</span>, ensure the target VPS is authenticated with GitHub. Authenticate via <span className="font-semibold">VPS Machines → Action Buttons → Authenticate GitHub</span> using your GitHub username and a classic personal access token. Without this, repository cloning will fail.
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-300">Project is inside a subdirectory</div>
+                      <div className="text-xs text-gray-500">(toggle)</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      aria-pressed={hasSubDirectory}
+                      onClick={() => setHasSubDirectory(s => !s)}
+                      className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors focus:outline-none ${hasSubDirectory ? 'bg-green-500' : 'bg-gray-700'}`}
+                    >
+                      <span className={`inline-block transform bg-white w-5 h-5 rounded-full shadow transition-transform ${hasSubDirectory ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+
+                  {hasSubDirectory && (
+                    <div className="mt-3">
+                      <label className="text-sm font-medium text-gray-300">Subdirectory (relative path)</label>
+                      <input
+                        type="text"
+                        name="sourceDir"
+                        value={formData.sourceDir}
+                        onChange={handleInputChange}
+                        placeholder="e.g. frontend or packages/my-app"
+                        className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Specify the path inside the repository that contains the project to deploy.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
