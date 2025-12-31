@@ -37,9 +37,11 @@ const VPSMachines = () => {
   const [githubForm, setGithubForm] = useState({ username: '', token: '' });
   const [loadingGithub, setLoadingGithub] = useState(false);
   const [showTokenSteps, setShowTokenSteps] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchMachines = async () => {
     try {
+      setLoading(true);
       const res = await apiClient(`${DEPLOYMENT_MANAGER_URL}/get-machines` || "http://localhost:5051/get-machines", {
         method: "GET",
       });
@@ -50,6 +52,8 @@ const VPSMachines = () => {
     } catch (error) {
       console.error("Error fetching machines:", error);
       toast.error("Failed to fetch machines");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -193,6 +197,15 @@ const VPSMachines = () => {
     }
   };
 
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-sm text-gray-400">Loading machines...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

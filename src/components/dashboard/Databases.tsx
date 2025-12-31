@@ -57,6 +57,7 @@ const Databases = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [dbToDelete, setDbToDelete] = useState<Database | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [selectedDbForDetails, setSelectedDbForDetails] =
     useState<Database | null>(null);
@@ -384,8 +385,15 @@ const Databases = () => {
   }
 
   useEffect(() => {
-    fetchDatabases();
-    fetchMachines();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchDatabases(), fetchMachines()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
   const fetchTableData = async (
     databaseName: string,
@@ -604,6 +612,15 @@ const Databases = () => {
       db.dbType.toLowerCase().includes(searchQuery.toLowerCase()) ||
       db.host.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-sm text-gray-400">Loading databases...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

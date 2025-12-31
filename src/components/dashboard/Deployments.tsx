@@ -18,9 +18,11 @@ interface Project {
 
 const Deployments = () => {
   const [deployments, setDeployments] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
   async function fetchProjects() {
     try {
+      setLoading(true);
       const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/get-projects`||"http://localhost:5053/get-projects", {
         method: "GET",
       });
@@ -31,6 +33,8 @@ const Deployments = () => {
       }
     } catch (error) {
       console.error("Error fetching projects:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -91,6 +95,15 @@ const Deployments = () => {
   const getProjectName = (domain: string) => {
     return domain.split('.')[0];
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-sm text-gray-400">Loading deployments...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

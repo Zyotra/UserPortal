@@ -36,6 +36,7 @@ const Overview = () => {
   const [showMachineSelector, setShowMachineSelector] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
+  const [loading, setLoading] = useState(true);
   const [analyticsModal, setAnalyticsModal] = useState<{ isOpen: boolean; machineId: string; machineName: string; machineIp: string }>({
     isOpen: false,
     machineId: '',
@@ -90,8 +91,15 @@ const Overview = () => {
   }
 
   useEffect(() => {
-    fetchProjects();
-    fetchMachines();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([fetchProjects(), fetchMachines()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const getRepoName = (repoUrl: string) => {
@@ -127,6 +135,15 @@ const Overview = () => {
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-sm text-gray-400">Loading overview...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
