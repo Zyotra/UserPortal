@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
+import Loader from '../Loader';
 import { DEPLOYMENT_MANAGER_URL, Frameworks, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
+
 interface Project {
   id: number;
   vpsIp: string;
@@ -51,9 +53,9 @@ const Overview = () => {
     } else if (serviceType === 'ui') {
       navigate('/deploy-ui', { state: { vpsId: machine.id } });
     } else if (serviceType === 'database') {
-        navigate('/deploy-database', { state: { vpsId: machine.id,vpsIp:machine.vps_ip } });
-    }else if (serviceType === 'caching') {
-        navigate('/deploy-caching', { state: { vpsId: machine.id,vpsIp:machine.vps_ip } });
+      navigate('/deploy-database', { state: { vpsId: machine.id, vpsIp: machine.vps_ip } });
+    } else if (serviceType === 'caching') {
+      navigate('/deploy-caching', { state: { vpsId: machine.id, vpsIp: machine.vps_ip } });
     } else {
       // For database and caching, show a coming soon message or handle accordingly
       alert(`${serviceType} deployment coming soon!`);
@@ -115,7 +117,7 @@ const Overview = () => {
     return domain.split('.')[0];
   };
 
-  const getProjectIcon = (projectType:string) => {
+  const getProjectIcon = (projectType: string) => {
     const project = Frameworks.find(pt => pt.value == projectType);
     if (project) {
       const IconComponent = project.icon;
@@ -138,9 +140,8 @@ const Overview = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-sm text-gray-400">Loading overview...</p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader size="lg" />
       </div>
     );
   }
@@ -148,18 +149,18 @@ const Overview = () => {
   return (
     <div className="space-y-8">
       {showMachineSelector && (
-        <MachineSelector 
-          onSelect={handleMachineSelect} 
-          onClose={() => setShowMachineSelector(false)} 
+        <MachineSelector
+          onSelect={handleMachineSelect}
+          onClose={() => setShowMachineSelector(false)}
         />
       )}
       {/* Controls */}
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="relative flex-1 max-w-xl w-full">
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input 
-            type="text" 
-            placeholder="Search Projects..." 
+          <input
+            type="text"
+            placeholder="Search Projects..."
             className="w-full bg-black border border-[#333] rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-white transition-all placeholder-gray-600 text-white shadow-sm"
           />
         </div>
@@ -168,7 +169,7 @@ const Overview = () => {
             <button className="p-2 rounded-lg bg-[#222] text-white shadow-sm"><FiGrid /></button>
             <button className="p-2 rounded-lg text-gray-500 hover:text-gray-300 transition-colors"><FiList /></button>
           </div>
-          <button 
+          <button
             onClick={() => setShowMachineSelector(true)}
             className="bg-white text-black px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all shadow-lg flex items-center gap-2 flex-1 md:flex-none justify-center"
           >
@@ -181,7 +182,7 @@ const Overview = () => {
         {/* Sidebar - Machines */}
         <div className="lg:col-span-1 space-y-6">
           <h3 className="text-sm font-semibold text-white">VPS Machines</h3>
-          
+
           {machines.length === 0 ? (
             <div className="border border-[#333] rounded-2xl p-6 bg-black">
               <p className="text-xs text-gray-500 text-center">No machines available</p>
@@ -198,13 +199,12 @@ const Overview = () => {
                     <p className="text-xs text-gray-500 font-mono">{machine.vps_ip}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      machine.vps_status?.toLowerCase() === 'running' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
-                    }`}></div>
-                    <span className="text-xs text-gray-500">{machine.storage +"GB Storage"}</span>
+                    <div className={`w-2 h-2 rounded-full ${machine.vps_status?.toLowerCase() === 'running' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
+                      }`}></div>
+                    <span className="text-xs text-gray-500">{machine.storage + "GB Storage"}</span>
                   </div>
                   {machine.region && (
                     <span className="text-xs text-gray-400">{machine.region}</span>
@@ -223,7 +223,7 @@ const Overview = () => {
                     )}
                   </div>
                 )}
-                
+
                 <button
                   onClick={() => setAnalyticsModal({
                     isOpen: true,
@@ -243,10 +243,10 @@ const Overview = () => {
         {/* Projects Grid */}
         <div className="lg:col-span-3">
           <div className="flex justify-between items-center mb-6">
-             <h3 className="text-lg font-semibold text-white">Active Projects</h3>
-             <span className="text-xs text-gray-500">Sorted by last activity</span>
+            <h3 className="text-lg font-semibold text-white">Active Projects</h3>
+            <span className="text-xs text-gray-500">Sorted by last activity</span>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {projects.length === 0 ? (
               <div className="col-span-2 text-center py-12 text-gray-500">
@@ -256,9 +256,9 @@ const Overview = () => {
               projects.map((project, index) => (
                 <div key={project.id} className="group relative border border-[#333] rounded-2xl p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
                   <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors">
-                          <FiMoreHorizontal />
-                      </button>
+                    <button className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors">
+                      <FiMoreHorizontal />
+                    </button>
                   </div>
 
                   <div className="flex items-start gap-4 mb-6">
@@ -278,25 +278,24 @@ const Overview = () => {
                   <div className="space-y-4">
                     <div className="p-3 rounded-xl bg-[#111] border border-[#222]">
                       <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
-                          <GoGitBranch className="text-gray-500" />
-                          <span className="font-mono">main</span>
-                          <span className="text-gray-600 mx-1">•</span>
-                          <span className="text-gray-500">{formatDate(project.createdAt)}</span>
+                        <GoGitBranch className="text-gray-500" />
+                        <span className="font-mono">main</span>
+                        <span className="text-gray-600 mx-1">•</span>
+                        <span className="text-gray-500">{formatDate(project.createdAt)}</span>
                       </div>
                       <div className="text-xs text-gray-400 truncate font-medium">
-                          {project.logs}
+                        {project.logs}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-2 text-xs text-gray-500 hover:text-white transition-colors cursor-pointer">
-                          <FiGithub />
-                          <span className="truncate">{getRepoName(project.repoUrl)}</span>
+                        <FiGithub />
+                        <span className="truncate">{getRepoName(project.repoUrl)}</span>
                       </div>
                       <div className="flex gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            project.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' :
-                            project.status === 'BUILDING' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)] animate-pulse' :
+                        <div className={`w-2 h-2 rounded-full ${project.status === 'SUCCESS' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' :
+                          project.status === 'BUILDING' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)] animate-pulse' :
                             'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
                           }`}></div>
                       </div>

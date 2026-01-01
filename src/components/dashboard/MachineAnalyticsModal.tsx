@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiX, FiServer, FiCpu, FiHardDrive, FiActivity, FiMonitor, FiLoader } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import parseSystemData from '../../Parser/machineDataParser';
+import Loader from '../Loader';
 import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface MachineAnalyticsModalProps {
@@ -132,7 +133,7 @@ const MachineAnalyticsModal = ({ isOpen, onClose, machineId, machineName, machin
         <div className="overflow-y-auto max-h-[calc(90vh-100px)] custom-scrollbar">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <FiLoader className="text-4xl text-blue-500 animate-spin" />
+              <Loader size="lg" />
             </div>
           ) : systemData ? (
             <div className="p-6 space-y-6">
@@ -280,9 +281,8 @@ const MachineAnalyticsModal = ({ isOpen, onClose, machineId, machineName, machin
                             </span>
                           </td>
                           <td className="py-2 pr-4">
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              process.status === 'R' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-xs ${process.status === 'R' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                              }`}>
                               {process.status}
                             </span>
                           </td>

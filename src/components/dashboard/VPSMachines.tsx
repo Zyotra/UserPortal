@@ -5,6 +5,7 @@ import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import AddMachineModal from './AddMachineModal';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
+import Loader from '../Loader';
 import { DEPLOYMENT_MANAGER_URL } from '../../types';
 
 interface MachineType {
@@ -200,9 +201,8 @@ const VPSMachines = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-sm text-gray-400">Loading machines...</p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader size="lg" />
       </div>
     );
   }

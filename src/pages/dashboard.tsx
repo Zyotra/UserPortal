@@ -20,9 +20,8 @@ import {
 import { MdCached } from 'react-icons/md';
 import Overview from '../components/dashboard/Overview';
 import VPSMachines from '../components/dashboard/VPSMachines';
-import Projects from '../components/dashboard/Projects';
+import Projects from '../components/dashboard/Projects.tsx';
 import Domains from '../components/dashboard/Domains';
-import Deployments from '../components/dashboard/Deployments';
 import Activity from '../components/dashboard/Activity';
 import Billings from '../components/dashboard/Billings';
 import Settings from '../components/dashboard/Settings';
@@ -30,6 +29,7 @@ import Databases from '../components/dashboard/Databases';
 import CacheMemory from "../components/dashboard/cacheMemory.tsx";
 import apiClient from '../utils/apiClient';
 import { AUTH_API_URL } from '../types';
+import Deployments from '../components/dashboard/Deployments.tsx';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -49,7 +49,6 @@ const Dashboard = () => {
         { name: 'Cache Memory', icon: MdCached },
         { name: 'Domains', icon: FiGlobe },
         { name: 'Deployments', icon: FiPackage },
-        { name: 'Activity', icon: FiActivity },
         { name: 'Billings', icon: FiCreditCard },
         { name: 'Settings', icon: FiSliders }
     ];
@@ -245,11 +244,10 @@ const Dashboard = () => {
                                 <button
                                     key={item.name}
                                     onClick={() => setActiveTab(item.name)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${
-                                        isActive
-                                            ? 'bg-white/10 text-white shadow-lg'
-                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                    }`}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative ${isActive
+                                        ? 'bg-white/10 text-white shadow-lg'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        }`}
                                     title={sidebarCollapsed ? item.name : ''}
                                 >
                                     {isActive && (
