@@ -27,7 +27,7 @@ const LiveLogsModal = ({
     // Default to live mode only if logType is 'live'
     const [isLive, setIsLive] = useState(logType === 'live');
     const logsEndRef = useRef<HTMLDivElement>(null);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<number | null>(null);
 
     const baseUrl = deploymentType === 'ui' ? UI_DEPLOYMENT_URL : WEB_SERVICE_DEPLOYMENT_URL;
 
