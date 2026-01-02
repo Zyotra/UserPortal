@@ -176,7 +176,7 @@ const Projects = () => {
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {filteredProjects.map((project) => (
-                        <div key={project.id} className="border border-[#333] rounded-lg bg-black hover:border-gray-400 transition-all duration-200 group overflow-hidden">
+                        <div key={project.id} className="border border-[#333] rounded-lg bg-black hover:border-gray-400 transition-all duration-200 group relative">
                             <div className="p-6">
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                     {/* Left Section - Domain & Status */}
@@ -248,45 +248,110 @@ const Projects = () => {
                                     </div>
 
                                     {/* Right Section - Actions */}
-                                    <div className="flex items-center gap-2 relative">
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        {/* View Logs Button */}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setActiveDropdown(activeDropdown === project.id ? null : project.id);
+                                                setSelectedProjectForLogs({ deploymentId: project.deploymentId, domain: project.domain });
+                                                setIsViewLogsModalOpen(true);
                                             }}
-                                            className="p-2 text-gray-400 hover:text-white hover:bg-[#222] rounded-md transition-colors border border-[#333] hover:border-gray-500"
-                                            title="More actions"
+                                            className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white bg-[#0a0a0a] hover:bg-[#1a1a1a] rounded-md transition-all duration-200 border border-[#333] hover:border-gray-500"
+                                            title="View deployment logs"
                                         >
-                                            <FiMoreVertical size={16} />
+                                            <FiEye size={14} />
+                                            <span className="hidden md:inline">Logs</span>
                                         </button>
 
-                                        {activeDropdown === project.id && (
-                                            <div className="absolute right-0 top-10 w-44 bg-[#111] border border-[#333] rounded-lg shadow-xl z-10 overflow-hidden">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedProjectForLogs({ deploymentId: project.deploymentId, domain: project.domain });
-                                                        setIsViewLogsModalOpen(true);
-                                                        setActiveDropdown(null);
-                                                    }}
-                                                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-300 hover:bg-[#222] hover:text-white transition-colors"
-                                                >
-                                                    <FiEye size={14} />
-                                                    View Logs
-                                                </button>
-                                                <div className="border-t border-[#333]"></div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        confirmDelete(project.id, project.domain);
-                                                    }}
-                                                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                                                >
-                                                    <FiTrash2 size={14} />
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
+                                        {/* More Actions Dropdown */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveDropdown(activeDropdown === project.id ? null : project.id);
+                                                }}
+                                                className="p-2 text-gray-400 hover:text-white bg-[#0a0a0a] hover:bg-[#1a1a1a] rounded-md transition-all duration-200 border border-[#333] hover:border-gray-500"
+                                                title="More actions"
+                                            >
+                                                <FiMoreVertical size={16} />
+                                            </button>
+
+                                            {activeDropdown === project.id && (
+                                                <>
+                                                    {/* Backdrop */}
+                                                    <div 
+                                                        className="fixed inset-0 z-40" 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActiveDropdown(null);
+                                                        }}
+                                                    />
+                                                    
+                                                    {/* Dropdown Menu */}
+                                                    <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
+                                                        <div className="py-1">
+                                                            {/* Mobile: Show View Logs */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedProjectForLogs({ deploymentId: project.deploymentId, domain: project.domain });
+                                                                    setIsViewLogsModalOpen(true);
+                                                                    setActiveDropdown(null);
+                                                                }}
+                                                                className="sm:hidden w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                                                            >
+                                                                <FiEye size={15} />
+                                                                <span>View Logs</span>
+                                                            </button>
+                                                            
+                                                            {/* Visit Site */}
+                                                            <a
+                                                                href={`https://${project.domain}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                                                            >
+                                                                <FiExternalLink size={15} />
+                                                                <span>Visit Site</span>
+                                                            </a>
+
+                                                            {/* GitHub Repo */}
+                                                            <a
+                                                                href={project.repoUrl.replace('.git', '')}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setActiveDropdown(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                                                            >
+                                                                <FiGithub size={15} />
+                                                                <span>View Repository</span>
+                                                            </a>
+
+                                                            <div className="my-1 border-t border-[#2a2a2a]"></div>
+
+                                                            {/* Delete */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    confirmDelete(project.id, project.domain);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                                                            >
+                                                                <FiTrash2 size={15} />
+                                                                <span>Delete Deployment</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
