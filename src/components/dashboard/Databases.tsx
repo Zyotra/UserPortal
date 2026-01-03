@@ -212,7 +212,7 @@ const Databases = () => {
       
       // Build payload
       const payload: any = {
-        databaseName: selectedDbForDetails.dbName,
+        databaseName: selectedDbForDetails.dbName.toLowerCase(),
         vpsId: selectedDbForDetails.vpsId,
         vpsIp: selectedDbForDetails.host,
         username: selectedDbForDetails.username,
