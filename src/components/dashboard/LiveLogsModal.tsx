@@ -37,13 +37,9 @@ const LiveLogsModal = ({
         try {
             setError(null);
             
-            // Abort previous request if it exists
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-            
             // Create new AbortController
-            abortControllerRef.current = new AbortController();
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
             
             // Determine endpoint based on logType
             const endpoint = logType === 'live'
@@ -52,7 +48,7 @@ const LiveLogsModal = ({
 
             const response = await apiClient(endpoint, {
                 method: 'GET',
-                signal: abortControllerRef.current.signal,
+                signal: controller.signal,
             });
 
             if (response.ok) {
@@ -60,9 +56,12 @@ const LiveLogsModal = ({
                 
                 const contentType = response.headers.get("content-type");
                 
-                if (response.body) {
-                    // Handle streaming response (SSE or plain text)
-                    const reader = response.body.getReader();
+                // Check if it's a streaming response (SSE) - only for live logs
+                const isStreaming = logType === 'live' && response.body;
+                
+                if (isStreaming) {
+                    // Handle streaming response (SSE)
+                    const reader = response.body!.getReader();
                     const decoder = new TextDecoder();
                     let accumulatedText = '';
 
@@ -160,7 +159,7 @@ const LiveLogsModal = ({
                         console.error('Error reading stream:', streamErr);
                     }
                 } else if (contentType && contentType.includes("application/json")) {
-                    // Fallback for JSON responses
+                    // Handle JSON responses
                     const data = await response.json();
                     let newLogLines: string[] = [];
                     
@@ -178,12 +177,9 @@ const LiveLogsModal = ({
                             : data.log.split('\n').filter((line: string) => line.trim());
                     }
                     
-                    setLogs(prev => {
-                        const logsToAdd = newLogLines.slice(prev.length);
-                        return logsToAdd.length > 0 ? [...prev, ...logsToAdd] : prev;
-                    });
+                    setLogs(prev => [...prev, ...newLogLines]);
                 } else {
-                    // Fallback to plain text
+                    // Handle plain text responses
                     const text = await response.text();
                     const textLogs = text.split('\n').filter(line => line.trim());
                     setLogs(prev => [...prev, ...textLogs]);
@@ -204,14 +200,20 @@ const LiveLogsModal = ({
     };
 
     useEffect(() => {
+        // Clear any existing interval first
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+
         if (isOpen && deploymentId) {
             setLogs([]); // Clear logs only when opening new deployment
             setLoading(true);
             fetchLogs();
 
-            // Poll for live logs every 3 seconds if live mode is enabled
-            // For build logs, we might not want auto-polling by default, but user can enable it
-            if (isLive) {
+            // Poll only for live logs every 3 seconds
+            // For build logs, fetch once and don't poll
+            if (isLive && logType === 'live') {
                 intervalRef.current = setInterval(fetchLogs, 3000);
             }
         }
@@ -224,9 +226,10 @@ const LiveLogsModal = ({
             // Clear the interval
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
+                intervalRef.current = null;
             }
         };
-    }, [isOpen, deploymentId, isLive, logType]); // Added logType dependency
+    }, [isOpen, deploymentId, isLive, logType]);
 
     // Auto-scroll to bottom when new logs arrive
     useEffect(() => {
