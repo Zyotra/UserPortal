@@ -28,12 +28,23 @@ const LiveLogsModal = ({
     const [isLive, setIsLive] = useState(logType === 'live');
     const logsEndRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<number | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const lastLogCountRef = useRef<number>(0); // Track last log count to deduplicate
 
     const baseUrl = deploymentType === 'ui' ? UI_DEPLOYMENT_URL : WEB_SERVICE_DEPLOYMENT_URL;
 
     const fetchLogs = async () => {
         try {
             setError(null);
+            
+            // Abort previous request if it exists
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            
+            // Create new AbortController
+            abortControllerRef.current = new AbortController();
+            
             // Determine endpoint based on logType
             const endpoint = logType === 'live'
                 ? `${baseUrl}/live-logs/${deploymentId}`
@@ -41,51 +52,147 @@ const LiveLogsModal = ({
 
             const response = await apiClient(endpoint, {
                 method: 'GET',
+                signal: abortControllerRef.current.signal,
             });
 
             if (response.ok) {
-                // Try to parse as JSON first, if fails treat as text
+                setLoading(false);
+                
                 const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
+                
+                if (response.body) {
+                    // Handle streaming response (SSE or plain text)
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let accumulatedText = '';
+
+                    try {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            accumulatedText += decoder.decode(value, { stream: true });
+                            
+                            // Process complete SSE messages
+                            const lines = accumulatedText.split('\n');
+                            
+                            // Keep the last incomplete line in accumulator
+                            accumulatedText = lines[lines.length - 1];
+                            
+                            // Process all complete lines
+                            for (let i = 0; i < lines.length - 1; i++) {
+                                const line = lines[i].trim();
+                                
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const jsonStr = line.substring(6); // Remove "data: " prefix
+                                        const parsed = JSON.parse(jsonStr);
+                                        
+                                        // Format the log entry
+                                        let formattedLog = '';
+                                        
+                                        if (parsed.type === 'connected') {
+                                            formattedLog = `[CONNECTED] Deployment: ${parsed.deploymentId}`;
+                                        } else if (parsed.type === 'closed') {
+                                            formattedLog = `[CLOSED] Connection ended`;
+                                        } else if (parsed.type === 'log' || parsed.type === 'error') {
+                                            const timestamp = parsed.timestamp ? new Date(parsed.timestamp).toLocaleTimeString() : '';
+                                            const logData = parsed.data || '';
+                                            
+                                            // Split multi-line logs
+                                            const logLines = logData.split('\n').filter((l: string) => l.trim());
+                                            
+                                            logLines.forEach((logLine: string, idx: number) => {
+                                                if (idx === 0 && timestamp) {
+                                                    formattedLog = `[${timestamp}] ${logLine}`;
+                                                } else {
+                                                    formattedLog = logLine;
+                                                }
+                                                
+                                                setLogs(prev => {
+                                                    // Avoid duplicates
+                                                    if (!prev.includes(formattedLog)) {
+                                                        return [...prev, formattedLog];
+                                                    }
+                                                    return prev;
+                                                });
+                                            });
+                                        }
+                                        
+                                        if (formattedLog && parsed.type !== 'log' && parsed.type !== 'error') {
+                                            setLogs(prev => [...prev, formattedLog]);
+                                        }
+                                    } catch (parseErr) {
+                                        console.error('Failed to parse SSE message:', line);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Process any remaining accumulated text
+                        if (accumulatedText.trim().startsWith('data: ')) {
+                            try {
+                                const jsonStr = accumulatedText.trim().substring(6);
+                                const parsed = JSON.parse(jsonStr);
+                                setLogs(prev => [...prev, JSON.stringify(parsed)]);
+                            } catch (parseErr) {
+                                console.error('Failed to parse final SSE message');
+                            }
+                        }
+                    } catch (streamErr) {
+                        if (streamErr instanceof Error && streamErr.name === 'AbortError') {
+                            console.log('Stream aborted');
+                            return;
+                        }
+                        console.error('Error reading stream:', streamErr);
+                    }
+                } else if (contentType && contentType.includes("application/json")) {
+                    // Fallback for JSON responses
                     const data = await response.json();
+                    let newLogLines: string[] = [];
+                    
                     if (data.logs) {
-                        const logLines = Array.isArray(data.logs)
+                        newLogLines = Array.isArray(data.logs)
                             ? data.logs
                             : data.logs.split('\n').filter((line: string) => line.trim());
-                        setLogs(logLines);
                     } else if (data.data) {
-                        const logLines = Array.isArray(data.data)
+                        newLogLines = Array.isArray(data.data)
                             ? data.data
                             : data.data.split('\n').filter((line: string) => line.trim());
-                        setLogs(logLines);
                     } else if (data.log) {
-                        const logLines = Array.isArray(data.log)
+                        newLogLines = Array.isArray(data.log)
                             ? data.log
                             : data.log.split('\n').filter((line: string) => line.trim());
-                        setLogs(logLines);
-                    } else {
-                        // Fallback if structure is different
-                        setLogs([JSON.stringify(data, null, 2)]);
                     }
+                    
+                    setLogs(prev => {
+                        const logsToAdd = newLogLines.slice(prev.length);
+                        return logsToAdd.length > 0 ? [...prev, ...logsToAdd] : prev;
+                    });
                 } else {
-                    // Text response
+                    // Fallback to plain text
                     const text = await response.text();
-                    setLogs(text.split('\n').filter(line => line.trim()));
+                    const textLogs = text.split('\n').filter(line => line.trim());
+                    setLogs(prev => [...prev, ...textLogs]);
                 }
             } else {
                 setError(`Failed to fetch logs: ${response.statusText}`);
+                setLoading(false);
             }
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                console.log('Request aborted');
+                return;
+            }
             setError('Error connecting to log server');
             console.error('Error fetching logs:', err);
-        } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
         if (isOpen && deploymentId) {
-            setLogs([]);
+            setLogs([]); // Clear logs only when opening new deployment
             setLoading(true);
             fetchLogs();
 
@@ -97,6 +204,11 @@ const LiveLogsModal = ({
         }
 
         return () => {
+            // Abort the fetch request when component unmounts or modal closes
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            // Clear the interval
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
             }
@@ -214,24 +326,50 @@ const LiveLogsModal = ({
                         </div>
                     ) : (
                         <div className="p-4 space-y-0.5">
-                            {logs.map((log, index) => (
-                                <div
-                                    key={index}
-                                    className="flex group hover:bg-[#111] rounded px-2 py-0.5 -mx-2 transition-colors"
-                                >
-                                    <span className="text-gray-600 select-none w-12 flex-shrink-0 text-right pr-4 text-xs">
-                                        {index + 1}
-                                    </span>
-                                    <span className={`break-all ${log.toLowerCase().includes('error') ? 'text-red-400' :
-                                        log.toLowerCase().includes('warn') ? 'text-yellow-400' :
-                                            log.toLowerCase().includes('success') ? 'text-green-400' :
-                                                log.toLowerCase().includes('info') ? 'text-blue-400' :
-                                                    'text-gray-300'
-                                        }`}>
-                                        {log}
-                                    </span>
-                                </div>
-                            ))}
+                            {logs.map((log, index) => {
+                                // Determine log type and color
+                                const logLower = log.toLowerCase();
+                                let bgColor = '';
+                                let textColor = 'text-gray-300';
+                                let icon = '';
+
+                                if (logLower.includes('[error]') || logLower.includes('error')) {
+                                    textColor = 'text-red-400';
+                                    bgColor = 'group-hover:bg-red-950/20';
+                                    icon = '❌';
+                                } else if (logLower.includes('[warn]') || logLower.includes('warning')) {
+                                    textColor = 'text-yellow-400';
+                                    bgColor = 'group-hover:bg-yellow-950/20';
+                                    icon = '⚠️';
+                                } else if (logLower.includes('[success]') || logLower.includes('deployed successfully') || logLower.includes('success')) {
+                                    textColor = 'text-green-400';
+                                    bgColor = 'group-hover:bg-green-950/20';
+                                    icon = '✅';
+                                } else if (logLower.includes('[connected]') || logLower.includes('[closed]')) {
+                                    textColor = 'text-cyan-400';
+                                    bgColor = 'group-hover:bg-cyan-950/20';
+                                    icon = '🔗';
+                                } else if (logLower.includes('[info]') || logLower.includes('info')) {
+                                    textColor = 'text-blue-400';
+                                    bgColor = 'group-hover:bg-blue-950/20';
+                                    icon = 'ℹ️';
+                                }
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className={`flex group hover:bg-[#111] rounded px-2 py-0.5 -mx-2 transition-colors ${bgColor}`}
+                                    >
+                                        <span className="text-gray-600 select-none w-12 flex-shrink-0 text-right pr-4 text-xs">
+                                            {index + 1}
+                                        </span>
+                                        <span className={`break-all font-mono text-xs leading-relaxed ${textColor}`}>
+                                            {icon && <span className="mr-2">{icon}</span>}
+                                            {log}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                             <div ref={logsEndRef} />
                         </div>
                     )}
