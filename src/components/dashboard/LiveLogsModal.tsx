@@ -99,14 +99,27 @@ const LiveLogsModal = ({
                                             const timestamp = parsed.timestamp ? new Date(parsed.timestamp).toLocaleTimeString() : '';
                                             const logData = parsed.data || '';
                                             
-                                            // Split multi-line logs
+                                        // Split multi-line logs
                                             const logLines = logData.split('\n').filter((l: string) => l.trim());
                                             
                                             logLines.forEach((logLine: string, idx: number) => {
+                                                let formattedLine = logLine;
+                                                
+                                                // Try to detect and format JSON
+                                                const jsonMatch = logLine.match(/\{.*\}|\[.*\]/);
+                                                if (jsonMatch) {
+                                                    try {
+                                                        const jsonObj = JSON.parse(jsonMatch[0]);
+                                                        formattedLine = logLine.replace(jsonMatch[0], JSON.stringify(jsonObj, null, 2));
+                                                    } catch (e) {
+                                                        // Not valid JSON, keep original
+                                                    }
+                                                }
+                                                
                                                 if (idx === 0 && timestamp) {
-                                                    formattedLog = `[${timestamp}] ${logLine}`;
+                                                    formattedLog = `[${timestamp}] ${formattedLine}`;
                                                 } else {
-                                                    formattedLog = logLine;
+                                                    formattedLog = formattedLine;
                                                 }
                                                 
                                                 setLogs(prev => {
@@ -329,8 +342,8 @@ const LiveLogsModal = ({
                             {logs.map((log, index) => {
                                 // Determine log type and color
                                 const logLower = log.toLowerCase();
-                                let bgColor = '';
                                 let textColor = 'text-gray-300';
+                                let bgColor = '';
                                 let icon = '';
 
                                 if (logLower.includes('[error]') || logLower.includes('error')) {
@@ -355,18 +368,33 @@ const LiveLogsModal = ({
                                     icon = 'ℹ️';
                                 }
 
+                                // Handle multi-line logs (JSON formatted)
+                                const logLines = log.split('\n');
+                                const isMultiLine = logLines.length > 1;
+
                                 return (
-                                    <div
-                                        key={index}
-                                        className={`flex group hover:bg-[#111] rounded px-2 py-0.5 -mx-2 transition-colors ${bgColor}`}
-                                    >
-                                        <span className="text-gray-600 select-none w-12 flex-shrink-0 text-right pr-4 text-xs">
-                                            {index + 1}
-                                        </span>
-                                        <span className={`break-all font-mono text-xs leading-relaxed ${textColor}`}>
-                                            {icon && <span className="mr-2">{icon}</span>}
-                                            {log}
-                                        </span>
+                                    <div key={index} className={`flex flex-col group rounded -mx-2 transition-colors ${bgColor}`}>
+                                        <div className={`flex hover:bg-[#111] rounded px-2 py-0.5 transition-colors`}>
+                                            <span className="text-gray-600 select-none w-12 flex-shrink-0 text-right pr-4 text-xs">
+                                                {index + 1}
+                                            </span>
+                                            <span className={`break-all font-mono text-xs leading-relaxed ${textColor}`}>
+                                                {icon && <span className="mr-2">{icon}</span>}
+                                                {logLines[0]}
+                                            </span>
+                                        </div>
+                                        {/* Display additional lines with indentation */}
+                                        {isMultiLine && logLines.slice(1).map((line, lineIdx) => (
+                                            <div
+                                                key={`${index}-${lineIdx}`}
+                                                className="flex hover:bg-[#111] rounded px-2 py-0.5 transition-colors ml-2"
+                                            >
+                                                <span className="text-gray-700 select-none w-12 flex-shrink-0 text-right pr-4 text-xs" />
+                                                <span className={`break-all font-mono text-xs leading-relaxed ${textColor}`}>
+                                                    {line}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
                                 );
                             })}
