@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye, FiCode } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye, FiCode, FiRefreshCw } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
@@ -45,6 +45,8 @@ const Overview = () => {
     machineName: '',
     machineIp: ''
   });
+  const [deployingProjectId, setDeployingProjectId] = useState<number | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
 
   const handleMachineSelect = (machine: any, serviceType: string) => {
     setShowMachineSelector(false);
@@ -104,6 +106,13 @@ const Overview = () => {
     loadData();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveDropdown(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const getRepoName = (repoUrl: string) => {
     try {
       const match = repoUrl.match(/github\.com\/(.+?)\.git$/);
@@ -115,6 +124,34 @@ const Overview = () => {
 
   const getProjectName = (domain: string) => {
     return domain.split('.')[0];
+  };
+
+  const handleDeployLatestCommit = async (deploymentId: string, projectId: number) => {
+    if (deployingProjectId) return; // Prevent multiple simultaneous deployments
+    
+    setDeployingProjectId(projectId);
+    setActiveDropdown(null);
+    
+    try {
+      const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
+        method: 'GET',
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        // Refresh projects list after successful deployment
+        await fetchProjects();
+        // You might want to show a success toast/notification here
+      } else {
+        console.error('Deployment failed:', data.message);
+        // You might want to show an error toast/notification here
+      }
+    } catch (error) {
+      console.error('Error deploying latest commit:', error);
+      // You might want to show an error toast/notification here
+    } finally {
+      setDeployingProjectId(null);
+    }
   };
 
   const getProjectIcon = (projectType: string) => {
@@ -256,9 +293,80 @@ const Overview = () => {
               projects.map((project, index) => (
                 <div key={project.id} className="group relative border border-[#333] rounded-2xl p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
                   <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors">
-                      <FiMoreHorizontal />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveDropdown(activeDropdown === project.id ? null : project.id);
+                        }}
+                        className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors"
+                      >
+                        <FiMoreHorizontal />
+                      </button>
+
+                      {activeDropdown === project.id && (
+                        <>
+                          {/* Backdrop */}
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(null);
+                            }}
+                          />
+                          
+                          {/* Dropdown Menu */}
+                          <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
+                            <div className="py-1">
+                              {/* Deploy Latest Commit */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeployLatestCommit(project.deploymentId, project.id);
+                                }}
+                                disabled={deployingProjectId === project.id}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FiRefreshCw size={15} className={deployingProjectId === project.id ? 'animate-spin' : ''} />
+                                <span>{deployingProjectId === project.id ? 'Deploying...' : 'Deploy Latest Commit'}</span>
+                              </button>
+
+                              <div className="my-1 border-t border-[#2a2a2a]"></div>
+
+                              {/* Visit Site */}
+                              <a
+                                href={`https://${project.domain}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdown(null);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                              >
+                                <FiExternalLink size={15} />
+                                <span>Visit Site</span>
+                              </a>
+
+                              {/* GitHub Repo */}
+                              <a
+                                href={project.repoUrl.replace('.git', '')}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdown(null);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                              >
+                                <FiGithub size={15} />
+                                <span>View Repository</span>
+                              </a>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-start gap-4 mb-6">

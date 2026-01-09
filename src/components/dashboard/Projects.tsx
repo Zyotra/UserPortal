@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader, FiCode, FiMoreVertical, FiEye } from 'react-icons/fi';
+import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader, FiCode, FiMoreVertical, FiEye, FiRefreshCw } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import ViewLogsModal from './ViewLogsModal';
@@ -28,6 +28,7 @@ const Projects = () => {
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false);
     const [selectedProjectForLogs, setSelectedProjectForLogs] = useState<{ deploymentId: string; domain: string } | null>(null);
+    const [deployingProjectId, setDeployingProjectId] = useState<number | null>(null);
 
     async function fetchProjects() {
         try {
@@ -137,6 +138,34 @@ const Projects = () => {
             return match ? match[1] : repoUrl;
         } catch {
             return repoUrl;
+        }
+    };
+
+    const handleDeployLatestCommit = async (deploymentId: string, projectId: number) => {
+        if (deployingProjectId) return; // Prevent multiple simultaneous deployments
+        
+        setDeployingProjectId(projectId);
+        setActiveDropdown(null);
+        
+        try {
+            const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
+                method: 'GET',
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'success') {
+                // Refresh projects list after successful deployment
+                await fetchProjects();
+                // You might want to show a success toast/notification here
+            } else {
+                console.error('Deployment failed:', data.message);
+                // You might want to show an error toast/notification here
+            }
+        } catch (error) {
+            console.error('Error deploying latest commit:', error);
+            // You might want to show an error toast/notification here
+        } finally {
+            setDeployingProjectId(null);
         }
     };
 
@@ -290,6 +319,21 @@ const Projects = () => {
                                                     {/* Dropdown Menu */}
                                                     <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
                                                         <div className="py-1">
+                                                            {/* Deploy Latest Commit */}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeployLatestCommit(project.deploymentId, project.id);
+                                                                }}
+                                                                disabled={deployingProjectId === project.id}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                <FiRefreshCw size={15} className={deployingProjectId === project.id ? 'animate-spin' : ''} />
+                                                                <span>{deployingProjectId === project.id ? 'Deploying...' : 'Deploy Latest Commit'}</span>
+                                                            </button>
+
+                                                            <div className="my-1 border-t border-[#2a2a2a]"></div>
+
                                                             {/* Mobile: Show View Logs */}
                                                             <button
                                                                 onClick={(e) => {
