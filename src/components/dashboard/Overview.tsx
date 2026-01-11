@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye, FiCode, FiRefreshCw } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiActivity, FiMoreHorizontal, FiGithub, FiChevronDown, FiPlus, FiExternalLink, FiServer, FiEye, FiCode, FiRefreshCw, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import MachineSelector from './MachineSelector';
 import MachineAnalyticsModal from './MachineAnalyticsModal';
 import apiClient from '../../utils/apiClient';
 import Loader from '../Loader';
+import ZyotraLogo from '../ZyotraLogo';
 import { DEPLOYMENT_MANAGER_URL, Frameworks, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 
 interface Project {
@@ -47,6 +48,9 @@ const Overview = () => {
   });
   const [deployingProjectId, setDeployingProjectId] = useState<number | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [operationStatus, setOperationStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const handleMachineSelect = (machine: any, serviceType: string) => {
     setShowMachineSelector(false);
@@ -131,6 +135,9 @@ const Overview = () => {
     
     setDeployingProjectId(projectId);
     setActiveDropdown(null);
+    setShowLoadingOverlay(true);
+    setLoadingMessage('Deploying latest commit...');
+    setOperationStatus('loading');
     
     try {
       const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
@@ -139,16 +146,29 @@ const Overview = () => {
       const data = await response.json();
       
       if (response.ok && data.status === 'success') {
+        setOperationStatus('success');
+        setLoadingMessage('Deployment successful!');
         // Refresh projects list after successful deployment
         await fetchProjects();
-        // You might want to show a success toast/notification here
+        // Close overlay after short delay
+        setTimeout(() => {
+          setShowLoadingOverlay(false);
+        }, 1500);
       } else {
+        setOperationStatus('error');
+        setLoadingMessage(data.message || 'Deployment failed');
         console.error('Deployment failed:', data.message);
-        // You might want to show an error toast/notification here
+        setTimeout(() => {
+          setShowLoadingOverlay(false);
+        }, 2000);
       }
     } catch (error) {
+      setOperationStatus('error');
+      setLoadingMessage(error instanceof Error ? error.message : 'Failed to deploy');
       console.error('Error deploying latest commit:', error);
-      // You might want to show an error toast/notification here
+      setTimeout(() => {
+        setShowLoadingOverlay(false);
+      }, 2000);
     } finally {
       setDeployingProjectId(null);
     }
@@ -185,6 +205,86 @@ const Overview = () => {
 
   return (
     <div className="space-y-8">
+      {/* Loading Overlay for operations */}
+      {showLoadingOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Blurred Background */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          
+          {/* Content */}
+          <div className="relative z-10 flex flex-col items-center bg-[#111] border border-[#333] rounded-2xl p-8 shadow-2xl">
+            {/* Logo with animation */}
+            <div className="relative mb-6">
+              {operationStatus === 'loading' && (
+                <>
+                  {/* Outer rotating ring */}
+                  <div className="absolute inset-0 w-24 h-24 -m-2">
+                    <div className="w-full h-full rounded-full border-2 border-transparent border-t-[#e4b2b3] border-r-[#e4b2b3]/50 animate-spin" style={{ animationDuration: '1.5s' }} />
+                  </div>
+                  {/* Inner pulsing glow */}
+                  <div className="absolute inset-0 w-20 h-20 rounded-full bg-[#e4b2b3]/10 animate-pulse" />
+                </>
+              )}
+              
+              {operationStatus === 'success' && (
+                <div className="absolute inset-0 w-20 h-20 rounded-full bg-green-500/20 animate-pulse" />
+              )}
+              
+              {operationStatus === 'error' && (
+                <div className="absolute inset-0 w-20 h-20 rounded-full bg-red-500/20 animate-pulse" />
+              )}
+              
+              {/* Logo */}
+              <div className={`relative w-20 h-20 flex items-center justify-center ${
+                operationStatus === 'loading' ? 'animate-pulse' : ''
+              }`}>
+                <ZyotraLogo className="w-14 h-14" />
+              </div>
+            </div>
+
+            {/* Status Icon */}
+            {(operationStatus === 'success' || operationStatus === 'error') && (
+              <div className="mb-4">
+                {operationStatus === 'success' && (
+                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/30">
+                    <FiCheckCircle className="text-green-400 text-xl" />
+                  </div>
+                )}
+                {operationStatus === 'error' && (
+                  <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30">
+                    <FiXCircle className="text-red-400 text-xl" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Message */}
+            <h2 className="text-lg font-semibold text-white mb-2 text-center">
+              {loadingMessage}
+            </h2>
+            
+            {operationStatus === 'loading' && (
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <span>Please wait</span>
+                <span className="flex gap-1">
+                  <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              </div>
+            )}
+            
+            {operationStatus === 'success' && (
+              <p className="text-green-400/80 text-sm">Completed</p>
+            )}
+            
+            {operationStatus === 'error' && (
+              <p className="text-red-400/80 text-sm">Please try again</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {showMachineSelector && (
         <MachineSelector
           onSelect={handleMachineSelect}

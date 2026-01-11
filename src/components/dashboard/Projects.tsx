@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader, FiCode, FiMoreVertical, FiEye, FiRefreshCw } from 'react-icons/fi';
+import { FiGithub, FiSearch, FiPlus, FiTrash2, FiClock, FiExternalLink, FiServer, FiCheckCircle, FiAlertCircle, FiLoader, FiCode, FiMoreVertical, FiEye, FiRefreshCw, FiXCircle } from 'react-icons/fi';
 import apiClient from '../../utils/apiClient';
 import ConfirmationModal from './ConfirmationModal';
 import ViewLogsModal from './ViewLogsModal';
 import Loader from '../Loader';
-import { WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
+import ZyotraLogo from '../ZyotraLogo';
+import { UI_DEPLOYMENT_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 import { Frameworks } from '../../types';
 interface Project {
     id: number;
@@ -12,6 +13,7 @@ interface Project {
     ownerId: number;
     repoUrl: string;
     domain: string;
+    projectType: string;
     logs: string;
     framework: string;
     deploymentId: string;
@@ -29,6 +31,9 @@ const Projects = () => {
     const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false);
     const [selectedProjectForLogs, setSelectedProjectForLogs] = useState<{ deploymentId: string; domain: string } | null>(null);
     const [deployingProjectId, setDeployingProjectId] = useState<number | null>(null);
+    const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('');
+    const [operationStatus, setOperationStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
     async function fetchProjects() {
         try {
@@ -58,19 +63,38 @@ const Projects = () => {
     const handleDelete = async () => {
         if (!projectToDelete) return;
 
+        setIsDeleteModalOpen(false);
+        setShowLoadingOverlay(true);
+        setLoadingMessage('Deleting project...');
+        setOperationStatus('loading');
+
         try {
             const res = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/delete-project/${projectToDelete.id}` || `http://localhost:5053/delete-project/${projectToDelete.id}`, {
                 method: 'DELETE',
             });
             if (res.ok) {
+                setOperationStatus('success');
+                setLoadingMessage('Project deleted successfully!');
                 setProjects(projects.filter(p => p.id !== projectToDelete.id));
-                setIsDeleteModalOpen(false);
                 setProjectToDelete(null);
+                setTimeout(() => {
+                    setShowLoadingOverlay(false);
+                }, 1500);
             } else {
+                setOperationStatus('error');
+                setLoadingMessage('Failed to delete project');
                 console.error('Failed to delete project');
+                setTimeout(() => {
+                    setShowLoadingOverlay(false);
+                }, 2000);
             }
         } catch (error) {
+            setOperationStatus('error');
+            setLoadingMessage(error instanceof Error ? error.message : 'Failed to delete project');
             console.error('Error deleting project:', error);
+            setTimeout(() => {
+                setShowLoadingOverlay(false);
+            }, 2000);
         }
     };
 
@@ -141,29 +165,52 @@ const Projects = () => {
         }
     };
 
-    const handleDeployLatestCommit = async (deploymentId: string, projectId: number) => {
+    const handleDeployLatestCommit = async (deploymentId: string, projectId: number, projectType: string) => {
         if (deployingProjectId) return; // Prevent multiple simultaneous deployments
-        
+
         setDeployingProjectId(projectId);
         setActiveDropdown(null);
-        
+        setShowLoadingOverlay(true);
+        setLoadingMessage('Deploying latest commit...');
+        setOperationStatus('loading');
+
         try {
-            const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
-                method: 'GET',
-            });
+            let response;
+            if (projectType === "ui") {
+                response = await apiClient(`${UI_DEPLOYMENT_URL}/deploy-latest-ui-commit/${deploymentId}`, {
+                    method: 'GET',
+                });
+            } else {
+                response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
+                    method: 'GET',
+                });
+            }
             const data = await response.json();
-            
+
             if (response.ok && data.status === 'success') {
+                setOperationStatus('success');
+                setLoadingMessage('Deployment successful!');
                 // Refresh projects list after successful deployment
                 await fetchProjects();
-                // You might want to show a success toast/notification here
+                // Close overlay after short delay
+                setTimeout(() => {
+                    setShowLoadingOverlay(false);
+                }, 1500);
             } else {
+                setOperationStatus('error');
+                setLoadingMessage(data.message || 'Deployment failed');
                 console.error('Deployment failed:', data.message);
-                // You might want to show an error toast/notification here
+                setTimeout(() => {
+                    setShowLoadingOverlay(false);
+                }, 2000);
             }
         } catch (error) {
+            setOperationStatus('error');
+            setLoadingMessage(error instanceof Error ? error.message : 'Failed to deploy');
             console.error('Error deploying latest commit:', error);
-            // You might want to show an error toast/notification here
+            setTimeout(() => {
+                setShowLoadingOverlay(false);
+            }, 2000);
         } finally {
             setDeployingProjectId(null);
         }
@@ -185,6 +232,85 @@ const Projects = () => {
 
     return (
         <div className="space-y-6">
+            {/* Loading Overlay for operations */}
+            {showLoadingOverlay && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Blurred Background */}
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+                    {/* Content */}
+                    <div className="relative z-10 flex flex-col items-center bg-[#111] border border-[#333] rounded-2xl p-8 shadow-2xl">
+                        {/* Logo with animation */}
+                        <div className="relative mb-6">
+                            {operationStatus === 'loading' && (
+                                <>
+                                    {/* Outer rotating ring */}
+                                    <div className="absolute inset-0 w-24 h-24 -m-2">
+                                        <div className="w-full h-full rounded-full border-2 border-transparent border-t-[#e4b2b3] border-r-[#e4b2b3]/50 animate-spin" style={{ animationDuration: '1.5s' }} />
+                                    </div>
+                                    {/* Inner pulsing glow */}
+                                    <div className="absolute inset-0 w-20 h-20 rounded-full bg-[#e4b2b3]/10 animate-pulse" />
+                                </>
+                            )}
+
+                            {operationStatus === 'success' && (
+                                <div className="absolute inset-0 w-20 h-20 rounded-full bg-green-500/20 animate-pulse" />
+                            )}
+
+                            {operationStatus === 'error' && (
+                                <div className="absolute inset-0 w-20 h-20 rounded-full bg-red-500/20 animate-pulse" />
+                            )}
+
+                            {/* Logo */}
+                            <div className={`relative w-20 h-20 flex items-center justify-center ${operationStatus === 'loading' ? 'animate-pulse' : ''
+                                }`}>
+                                <ZyotraLogo className="w-14 h-14" />
+                            </div>
+                        </div>
+
+                        {/* Status Icon */}
+                        {(operationStatus === 'success' || operationStatus === 'error') && (
+                            <div className="mb-4">
+                                {operationStatus === 'success' && (
+                                    <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/30">
+                                        <FiCheckCircle className="text-green-400 text-xl" />
+                                    </div>
+                                )}
+                                {operationStatus === 'error' && (
+                                    <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30">
+                                        <FiXCircle className="text-red-400 text-xl" />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Message */}
+                        <h2 className="text-lg font-semibold text-white mb-2 text-center">
+                            {loadingMessage}
+                        </h2>
+
+                        {operationStatus === 'loading' && (
+                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                                <span>Please wait</span>
+                                <span className="flex gap-1">
+                                    <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                    <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </span>
+                            </div>
+                        )}
+
+                        {operationStatus === 'success' && (
+                            <p className="text-green-400/80 text-sm">Completed</p>
+                        )}
+
+                        {operationStatus === 'error' && (
+                            <p className="text-red-400/80 text-sm">Please try again</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="relative flex-1 max-w-md w-full">
                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -308,14 +434,14 @@ const Projects = () => {
                                             {activeDropdown === project.id && (
                                                 <>
                                                     {/* Backdrop */}
-                                                    <div 
-                                                        className="fixed inset-0 z-40" 
+                                                    <div
+                                                        className="fixed inset-0 z-40"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setActiveDropdown(null);
                                                         }}
                                                     />
-                                                    
+
                                                     {/* Dropdown Menu */}
                                                     <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
                                                         <div className="py-1">
@@ -323,7 +449,7 @@ const Projects = () => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleDeployLatestCommit(project.deploymentId, project.id);
+                                                                    handleDeployLatestCommit(project.deploymentId, project.id, project.projectType);
                                                                 }}
                                                                 disabled={deployingProjectId === project.id}
                                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -347,7 +473,7 @@ const Projects = () => {
                                                                 <FiEye size={15} />
                                                                 <span>View Logs</span>
                                                             </button>
-                                                            
+
                                                             {/* Visit Site */}
                                                             <a
                                                                 href={`https://${project.domain}`}
