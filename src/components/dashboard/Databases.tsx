@@ -1417,8 +1417,8 @@ const Databases = () => {
                           </span>
                         </div>
                         <div className="flex-1 overflow-auto p-4">
-                          <div className="border border-[#333] rounded-lg overflow-hidden">
-                            <table className="w-full text-left border-collapse">
+                          <div className="border border-[#333] rounded-lg overflow-x-auto">
+                            <table className="min-w-full text-left border-collapse whitespace-nowrap">
                               <thead>
                                 <tr className="bg-[#0A0A0A]">
                                   {tableData && tableData.length > 0 ? (
@@ -1589,8 +1589,8 @@ const Databases = () => {
                         </span>
                       </div>
                       <div className="flex-1 overflow-auto p-4">
-                        <div className="border border-[#333] rounded-lg overflow-hidden">
-                          <table className="w-full text-left border-collapse">
+                        <div className="border border-[#333] rounded-lg overflow-x-auto">
+                          <table className="min-w-full text-left border-collapse whitespace-nowrap">
                             <thead>
                               <tr className="bg-[#0A0A0A]">
                                 {queryResult.rows[0] && typeof queryResult.rows[0] === 'object' && !Array.isArray(queryResult.rows[0]) ? (
