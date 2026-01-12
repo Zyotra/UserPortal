@@ -94,35 +94,59 @@ const DeployCaching = () => {
         setLoadingMessage('Redis server deployed successfully!');
         setResponseMessage({
           type: 'success',
-          message: data.message || 'Redis server has been deployed successfully. You can now use it for caching in your applications.'
+          message: data.message || 'Redis server has been deployed successfully and is now running. You can use it for caching in your applications.'
         });
-        setLogs(prev => [...prev, 'Redis server deployed successfully!', `Host: ${formData.vpsIp}:${formData.port}`]);
+        setLogs(prev => [...prev, 
+          '✓ Redis server deployed successfully!', 
+          `✓ Host: ${formData.vpsIp}:${formData.port}`,
+          `✓ Server Name: ${formData.name}`,
+          '✓ Redis service is up and running',
+          '---',
+          'Connection String: redis://[password]@' + formData.vpsIp + ':' + formData.port
+        ]);
         setDeploymentStatus('success');
       } else {
         setLoadingMessage('Redis deployment failed');
-        const errorMsg = data?.message || data?.error || 'Failed to deploy Redis server. Please check your configuration and try again.';
+        let errorMsg = data?.message || data?.error || 'Failed to deploy Redis server.';
+        
+        // Add specific error guidance
+        if (errorMsg.toLowerCase().includes('port') || errorMsg.toLowerCase().includes('address already in use')) {
+          errorMsg += ' The port might already be in use. Please check if Redis is already running on this port or try a different port.';
+        } else if (errorMsg.toLowerCase().includes('connection')) {
+          errorMsg += ' Please verify your VPS connection and credentials.';
+        } else {
+          errorMsg += ' Please check your port configuration (it might already be deployed), VPS connection, and try again.';
+        }
+        
         setResponseMessage({
           type: 'error',
           message: errorMsg
         });
-        setLogs(prev => [...prev, `Error: ${errorMsg}`]);
+        setLogs(prev => [...prev, `❌ Error: ${errorMsg}`]);
         setDeploymentStatus('failed');
       }
     } catch (error) {
       console.error('Error deploying Redis:', error);
       setLoadingMessage('Redis deployment failed');
-      const errorMsg = error instanceof Error
-        ? `Network error: ${error.message}. Please check your connection and try again.`
-        : 'An unexpected error occurred. Please try again later.';
+      let errorMsg = error instanceof Error
+        ? error.message
+        : 'An unexpected error occurred.';
+
+      // Provide specific guidance based on error type
+      if (errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('fetch')) {
+        errorMsg = `Network error: ${errorMsg}. Please check your VPS connection and try again.`;
+      } else if (errorMsg.toLowerCase().includes('timeout')) {
+        errorMsg = `Connection timeout: ${errorMsg}. The VPS might be unreachable or slow. Please verify the IP address and network.`;
+      } else {
+        errorMsg = `Deployment failed: ${errorMsg}. Please check your port (it might already be deployed), VPS settings, and connection.`;
+      }
 
       setResponseMessage({
         type: 'error',
         message: errorMsg
       });
-      setLogs(prev => [...prev, `Error: ${errorMsg}`]);
+      setLogs(prev => [...prev, `❌ Error: ${errorMsg}`]);
       setDeploymentStatus('failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -196,28 +220,36 @@ const DeployCaching = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12">
-      {/* Loading Modal */}
-      {loading && (
+      {/* Loading/Response Modal */}
+      {(loading || responseMessage) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="bg-[#111] border border-[#333] rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
             <div className="flex flex-col items-center text-center">
               {/* Animated Spinner */}
               <div className="relative mb-6">
-                <div className="w-20 h-20 border-4 border-[#333] rounded-full"></div>
-                <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-red-500 rounded-full animate-spin"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <SiRedis className="text-red-500 text-2xl animate-pulse" />
-                </div>
+                {deploymentStatus !== 'success' ? (
+                  <>
+                    <div className="w-20 h-20 border-4 border-[#333] rounded-full"></div>
+                    <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-red-500 rounded-full animate-spin"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <SiRedis className="text-red-500 text-2xl animate-pulse" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center border-4 border-green-500 animate-in zoom-in duration-500">
+                    <FiCheckCircle className="text-green-500 text-3xl" />
+                  </div>
+                )}
               </div>
 
               {/* Loading Message */}
               <h3 className="text-xl font-bold text-white mb-2">
                 {deploymentStatus === 'deploying' ? 'Deploying Redis Server' :
-                 deploymentStatus === 'success' ? 'Redis Deployed!' :
+                 deploymentStatus === 'success' ? '✓ Redis Deployed Successfully!' :
                  'Deployment Failed'}
               </h3>
 
-              <p className="text-gray-400 text-sm mb-6 min-h-[20px]">
+              <p className={`text-sm mb-6 min-h-[20px] ${deploymentStatus === 'success' ? 'text-green-400 font-medium' : 'text-gray-400'}`}>
                 {loadingMessage}
               </p>
 
@@ -241,11 +273,22 @@ const DeployCaching = () => {
                     ) : (
                       <FiXCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
                     )}
-                    <p className={`text-sm text-left ${
+                    <div className={`text-sm text-left ${
                       responseMessage.type === 'success' ? 'text-green-400' : 'text-red-400'
                     }`}>
-                      {responseMessage.message}
-                    </p>
+                      {responseMessage.type === 'success' ? (
+                        <div className="space-y-2">
+                          <p className="font-semibold">🎉 {responseMessage.message}</p>
+                          <div className="text-xs space-y-1 pt-2 border-t border-green-500/20">
+                            <p>✓ Server: <span className="font-mono">{formData.name}</span></p>
+                            <p>✓ Host: <span className="font-mono">{formData.vpsIp}:{formData.port}</span></p>
+                            <p>✓ Status: <span className="text-green-300">Running</span></p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p>{responseMessage.message}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
