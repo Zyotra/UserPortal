@@ -8,6 +8,10 @@ import {
     FiCheck,
     FiX,
     FiServer,
+    FiTrash2,
+    FiStopCircle,
+    FiAlertTriangle,
+    FiPlayCircle,
 } from "react-icons/fi";
 import {FaMemory} from "react-icons/fa";
 import {SiRedis} from "react-icons/si";
@@ -28,6 +32,8 @@ interface CacheServer {
     createdAt: string;
 }
 
+type ActionType = 'delete' | 'stop' | 'start' | null;
+
 const CacheMemory = () => {
     const [cacheServers, setCacheServers] = useState<CacheServer[]>([]);
 
@@ -37,6 +43,13 @@ const CacheMemory = () => {
     const [selectedCache, setSelectedCache] = useState<CacheServer | null>(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    
+    // Action states
+    const [actionLoading, setActionLoading] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<ActionType>(null);
+    const [actionTarget, setActionTarget] = useState<CacheServer | null>(null);
+    const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    
     const copyToClipboard = (text: string, id: number) => {
         navigator.clipboard.writeText(text);
         setCopiedId(id);
@@ -50,8 +63,9 @@ const CacheMemory = () => {
     };
 
     const getStatusColor = (status: string) => {
-        if (status === "active") return "bg-green-500";
+        if (status === "active" || status === "running") return "bg-green-500";
         if (status === "degraded") return "bg-yellow-500";
+        if (status === "stopped") return "bg-red-500";
         return "bg-gray-500";
     };
 
@@ -76,6 +90,163 @@ const CacheMemory = () => {
             cache.host.toLowerCase().includes(searchQuery.toLowerCase()) ||
             cache.cachingType.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // Delete Redis Server
+    const handleDeleteRedis = async (cache: CacheServer) => {
+        setActionLoading(true);
+        setActionMessage(null);
+        try {
+            const payload = {
+                name: cache.cacheName,
+                password: cache.password,
+                vpsId: cache.vpsId,
+                vpsIp: cache.host,
+                port: String(cache.port),
+            };
+            const res = await apiClient(`${STORAGE_LAYER_DEPOYMENT_URL}/delete-redis-server`, {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setActionMessage({
+                    type: 'success',
+                    message: data.message || `Redis server "${cache.cacheName}" has been deleted successfully.`
+                });
+                // Remove from local state
+                setCacheServers(prev => prev.filter(c => c.id !== cache.id));
+                // Close details modal if open
+                if (selectedCache?.id === cache.id) {
+                    setIsDetailsModalOpen(false);
+                    setSelectedCache(null);
+                }
+            } else {
+                const data = await res.json();
+                let errorMsg = data?.message || data?.error || 'Failed to delete Redis server.';
+                errorMsg += ' Please check your configuration and try again.';
+                setActionMessage({ type: 'error', message: errorMsg });
+            }
+        } catch (error) {
+            console.error('Error deleting Redis:', error);
+            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred.';
+            setActionMessage({ type: 'error', message: `Failed to delete Redis server: ${errorMsg}` });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Stop Redis Server
+    const handleStopRedis = async (cache: CacheServer) => {
+        setActionLoading(true);
+        setActionMessage(null);
+        try {
+            const payload = {
+                name: cache.cacheName,
+                password: cache.password,
+                vpsId: cache.vpsId,
+                vpsIp: cache.host,
+                port: String(cache.port),
+            };
+            const res = await apiClient(`${STORAGE_LAYER_DEPOYMENT_URL}/stop-redis-server`, {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setActionMessage({
+                    type: 'success',
+                    message: data.message || `Redis server "${cache.cacheName}" has been stopped successfully.`
+                });
+                // Update status in local state
+                setCacheServers(prev => prev.map(c => 
+                    c.id === cache.id ? { ...c, status: 'stopped' } : c
+                ));
+                // Update selected cache if open
+                if (selectedCache?.id === cache.id) {
+                    setSelectedCache({ ...selectedCache, status: 'stopped' });
+                }
+            } else {
+                const data = await res.json();
+                let errorMsg = data?.message || data?.error || 'Failed to stop Redis server.';
+                errorMsg += ' Please check your configuration and try again.';
+                setActionMessage({ type: 'error', message: errorMsg });
+            }
+        } catch (error) {
+            console.error('Error stopping Redis:', error);
+            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred.';
+            setActionMessage({ type: 'error', message: `Failed to stop Redis server: ${errorMsg}` });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Start Redis Server
+    const handleStartRedis = async (cache: CacheServer) => {
+        setActionLoading(true);
+        setActionMessage(null);
+        try {
+            const payload = {
+                name: cache.cacheName,
+                password: cache.password,
+                vpsId: cache.vpsId,
+                vpsIp: cache.host,
+                port: String(cache.port),
+            };
+            const res = await apiClient(`${STORAGE_LAYER_DEPOYMENT_URL}/start-stopped-redis-server`, {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setActionMessage({
+                    type: 'success',
+                    message: data.message || `Redis server "${cache.cacheName}" has been started successfully.`
+                });
+                // Update status in local state
+                setCacheServers(prev => prev.map(c => 
+                    c.id === cache.id ? { ...c, status: 'running' } : c
+                ));
+                // Update selected cache if open
+                if (selectedCache?.id === cache.id) {
+                    setSelectedCache({ ...selectedCache, status: 'running' });
+                }
+            } else {
+                const data = await res.json();
+                let errorMsg = data?.message || data?.error || 'Failed to start Redis server.';
+                errorMsg += ' Please check your configuration and try again.';
+                setActionMessage({ type: 'error', message: errorMsg });
+            }
+        } catch (error) {
+            console.error('Error starting Redis:', error);
+            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred.';
+            setActionMessage({ type: 'error', message: `Failed to start Redis server: ${errorMsg}` });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // Handle confirmed action
+    const handleConfirmAction = () => {
+        if (!actionTarget) return;
+        if (confirmAction === 'delete') {
+            handleDeleteRedis(actionTarget);
+        } else if (confirmAction === 'stop') {
+            handleStopRedis(actionTarget);
+        } else if (confirmAction === 'start') {
+            handleStartRedis(actionTarget);
+        }
+    };
+
+    // Close action modal
+    const closeActionModal = () => {
+        setConfirmAction(null);
+        setActionTarget(null);
+        setActionMessage(null);
+    };
+
     async function fetchCache(){
         setLoading(true)
         try {
@@ -159,7 +330,7 @@ const CacheMemory = () => {
                                     Active
                                 </p>
                                 <p className="text-2xl font-bold text-white">
-                                    {cacheServers.filter((c) => c.status === "active").length}
+                                    {cacheServers.filter((c) => c.status === "active" || c.status === "running").length}
                                 </p>
                             </div>
                         </div>
@@ -288,12 +459,52 @@ const CacheMemory = () => {
                                             <div className="flex items-center gap-2">
                                                 <div
                                                     className={`w-2 h-2 rounded-full ${getStatusColor(cache.status)} ${
-                                                        cache.status === "active" ? "animate-pulse" : ""
+                                                        cache.status === "active" || cache.status === "running" ? "animate-pulse" : ""
                                                     }`}
                                                 ></div>
                                                 <span className="text-[10px] text-gray-400 uppercase tracking-widest">
                           {cache.status}
                         </span>
+                                            </div>
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {cache.status === "stopped" && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActionTarget(cache);
+                                                            setConfirmAction('start');
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors"
+                                                        title="Start Redis Server"
+                                                    >
+                                                        <FiPlayCircle size={14} />
+                                                    </button>
+                                                )}
+                                                {(cache.status === "active" || cache.status === "running") && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActionTarget(cache);
+                                                            setConfirmAction('stop');
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 transition-colors"
+                                                        title="Stop Redis Server"
+                                                    >
+                                                        <FiStopCircle size={14} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActionTarget(cache);
+                                                        setConfirmAction('delete');
+                                                    }}
+                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                                    title="Delete Redis Server"
+                                                >
+                                                    <FiTrash2 size={14} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -316,6 +527,9 @@ const CacheMemory = () => {
                                     </th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                         Status
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                        Actions
                                     </th>
                                 </tr>
                                 </thead>
@@ -364,6 +578,47 @@ const CacheMemory = () => {
                           </span>
                                             </div>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                {cache.status === "stopped" && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActionTarget(cache);
+                                                            setConfirmAction('start');
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors"
+                                                        title="Start Redis Server"
+                                                    >
+                                                        <FiPlayCircle size={14} />
+                                                    </button>
+                                                )}
+                                                {(cache.status === "active" || cache.status === "running") && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActionTarget(cache);
+                                                            setConfirmAction('stop');
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 transition-colors"
+                                                        title="Stop Redis Server"
+                                                    >
+                                                        <FiStopCircle size={14} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActionTarget(cache);
+                                                        setConfirmAction('delete');
+                                                    }}
+                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                                    title="Delete Redis Server"
+                                                >
+                                                    <FiTrash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                                 </tbody>
@@ -390,8 +645,10 @@ const CacheMemory = () => {
                                         {selectedCache.cacheName}
                                         <span
                                             className={`text-[10px] uppercase px-2 py-0.5 rounded-full border ${
-                                                selectedCache.status === "active"
+                                                selectedCache.status === "active" || selectedCache.status === "running"
                                                     ? "bg-green-500/10 text-green-400 border-green-500/20"
+                                                    : selectedCache.status === "stopped"
+                                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
                                                     : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
                                             }`}
                                         >
@@ -467,7 +724,167 @@ const CacheMemory = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Action Buttons in Details Modal */}
+                                <div className="flex gap-3">
+                                    {selectedCache.status === "stopped" && (
+                                        <button
+                                            onClick={() => {
+                                                setActionTarget(selectedCache);
+                                                setConfirmAction('start');
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500/20 transition-all text-sm font-medium"
+                                        >
+                                            <FiPlayCircle /> Start Server
+                                        </button>
+                                    )}
+                                    {(selectedCache.status === "active" || selectedCache.status === "running") && (
+                                        <button
+                                            onClick={() => {
+                                                setActionTarget(selectedCache);
+                                                setConfirmAction('stop');
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 hover:bg-yellow-500/20 transition-all text-sm font-medium"
+                                        >
+                                            <FiStopCircle /> Stop Server
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => {
+                                            setActionTarget(selectedCache);
+                                            setConfirmAction('delete');
+                                        }}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-all text-sm font-medium"
+                                    >
+                                        <FiTrash2 /> Delete Server
+                                    </button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal for Delete/Stop */}
+            {(confirmAction || actionMessage) && actionTarget && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="bg-[#111] border border-[#333] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                        {/* Modal Header */}
+                        <div className={`px-6 py-4 border-b border-[#222] flex items-center gap-3 ${
+                            confirmAction === 'delete' ? 'bg-red-500/5' : confirmAction === 'start' ? 'bg-green-500/5' : 'bg-yellow-500/5'
+                        }`}>
+                            <div className={`p-2 rounded-xl ${
+                                confirmAction === 'delete' 
+                                    ? 'bg-red-500/10 text-red-500' 
+                                    : confirmAction === 'start'
+                                    ? 'bg-green-500/10 text-green-500'
+                                    : 'bg-yellow-500/10 text-yellow-500'
+                            }`}>
+                                {confirmAction === 'delete' ? <FiTrash2 size={20} /> : confirmAction === 'start' ? <FiPlayCircle size={20} /> : <FiStopCircle size={20} />}
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-white">
+                                    {confirmAction === 'delete' ? 'Delete Redis Server' : confirmAction === 'start' ? 'Start Redis Server' : 'Stop Redis Server'}
+                                </h3>
+                                <p className="text-xs text-gray-500">{actionTarget.cacheName}</p>
+                            </div>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6">
+                            {actionLoading ? (
+                                <div className="flex flex-col items-center py-6">
+                                    <div className="relative mb-4">
+                                        <div className="w-12 h-12 border-4 border-[#333] rounded-full"></div>
+                                        <div className={`absolute top-0 left-0 w-12 h-12 border-4 border-transparent rounded-full animate-spin ${
+                                            confirmAction === 'delete' ? 'border-t-red-500' : confirmAction === 'start' ? 'border-t-green-500' : 'border-t-yellow-500'
+                                        }`}></div>
+                                    </div>
+                                    <p className="text-gray-400 text-sm">
+                                        {confirmAction === 'delete' ? 'Deleting Redis server...' : confirmAction === 'start' ? 'Starting Redis server...' : 'Stopping Redis server...'}
+                                    </p>
+                                </div>
+                            ) : actionMessage ? (
+                                <div className="space-y-4">
+                                    <div className={`p-4 rounded-xl border ${
+                                        actionMessage.type === 'success'
+                                            ? 'bg-green-500/10 border-green-500/30'
+                                            : 'bg-red-500/10 border-red-500/30'
+                                    }`}>
+                                        <div className="flex items-start gap-3">
+                                            {actionMessage.type === 'success' ? (
+                                                <FiCheck className="text-green-500 text-xl flex-shrink-0 mt-0.5" />
+                                            ) : (
+                                                <FiAlertTriangle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+                                            )}
+                                            <p className={`text-sm ${
+                                                actionMessage.type === 'success' ? 'text-green-400' : 'text-red-400'
+                                            }`}>
+                                                {actionMessage.message}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={closeActionModal}
+                                        className="w-full bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-[#0a0a0a] border border-[#222] rounded-xl">
+                                        <div className={`flex items-center gap-2 mb-2 ${
+                                            confirmAction === 'start' ? 'text-green-500' : 'text-yellow-500'
+                                        }`}>
+                                            {confirmAction === 'start' ? <FiPlayCircle /> : <FiAlertTriangle />}
+                                            <span className="text-sm font-medium">{confirmAction === 'start' ? 'Confirm' : 'Warning'}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-400">
+                                            {confirmAction === 'delete' 
+                                                ? `Are you sure you want to delete the Redis server "${actionTarget.cacheName}"? This action cannot be undone and all cached data will be lost.`
+                                                : confirmAction === 'start'
+                                                ? `Are you sure you want to start the Redis server "${actionTarget.cacheName}"? The server will become available for connections.`
+                                                : `Are you sure you want to stop the Redis server "${actionTarget.cacheName}"? Applications using this cache will lose connection.`
+                                            }
+                                        </p>
+                                    </div>
+
+                                    <div className="p-3 bg-[#0a0a0a] border border-[#222] rounded-xl">
+                                        <div className="text-xs text-gray-500 space-y-1">
+                                            <p>Server: <span className="text-gray-300 font-mono">{actionTarget.cacheName}</span></p>
+                                            <p>Host: <span className="text-gray-300 font-mono">{actionTarget.host}:{actionTarget.port}</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={closeActionModal}
+                                            className="flex-1 bg-[#222] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#333] transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleConfirmAction}
+                                            className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                                                confirmAction === 'delete'
+                                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                                    : confirmAction === 'start'
+                                                    ? 'bg-green-500 text-white hover:bg-green-600'
+                                                    : 'bg-yellow-500 text-black hover:bg-yellow-600'
+                                            }`}
+                                        >
+                                            {confirmAction === 'delete' ? (
+                                                <><FiTrash2 /> Delete</>
+                                            ) : confirmAction === 'start' ? (
+                                                <><FiPlayCircle /> Start</>
+                                            ) : (
+                                                <><FiStopCircle /> Stop</>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

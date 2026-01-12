@@ -46,8 +46,6 @@ const DeployDB = () => {
   const databases = [
     { value: 'postgres', label: 'PostgreSQL', icon: SiPostgresql, color: 'text-blue-400', description: 'Advanced open-source relational database' },
     { value: 'mysql', label: 'MySQL', icon: SiMysql, color: 'text-orange-400', description: 'Popular open-source relational database' },
-    { value: 'mongodb', label: 'MongoDB', icon: SiMongodb, color: 'text-green-400', description: 'NoSQL document database' },
-    { value: 'redis', label: 'Redis', icon: SiRedis, color: 'text-red-400', description: 'In-memory data structure store' },
   ];
 
   // Auto-scroll terminal
