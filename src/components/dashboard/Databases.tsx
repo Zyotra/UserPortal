@@ -81,6 +81,7 @@ const Databases = () => {
   const [tableData, setTableData] = useState<any[]>([]);
   const [isLoadingTables, setIsLoadingTables] = useState(false);
   const [tablesError, setTablesError] = useState<string | null>(null);
+  const [tableDataSearch, setTableDataSearch] = useState("");
   
   const fetchTableList = async (
     databaseName: string,
@@ -1405,16 +1406,35 @@ const Databases = () => {
                   <div className="flex-1 bg-black border border-[#222] rounded-2xl overflow-hidden flex flex-col">
                     {selectedTable ? (
                       <>
-                        <div className="p-4 border-b border-[#222] bg-black/50 flex justify-between items-center">
+                        <div className="p-4 border-b border-[#222] bg-black/50 flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
                           <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
                             Data for table:{" "}
                             <span className="text-blue-400">
                               {selectedTable}
                             </span>
                           </h4>
-                          <span className="text-[10px] text-gray-500">
-                            Showing first 100 rows
-                          </span>
+                          <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:flex-initial">
+                              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
+                              <input
+                                type="text"
+                                placeholder="Search in table data..."
+                                value={tableDataSearch}
+                                onChange={(e) => setTableDataSearch(e.target.value)}
+                                className="w-full sm:w-64 bg-black border border-[#333] rounded-lg py-1.5 pl-9 pr-3 text-xs focus:outline-none focus:border-gray-500 transition-all placeholder-gray-600 text-white"
+                              />
+                            </div>
+                            <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                              {(() => {
+                                const filteredCount = tableData.filter((row) =>
+                                  Object.values(row).some((val) =>
+                                    String(val).toLowerCase().includes(tableDataSearch.toLowerCase())
+                                  )
+                                ).length;
+                                return tableDataSearch ? `${filteredCount} of ${tableData.length} rows` : `Showing first 100 rows`;
+                              })()}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex-1 overflow-auto p-4">
                           <div className="border border-[#333] rounded-lg overflow-x-auto">
@@ -1439,27 +1459,35 @@ const Databases = () => {
                               </thead>
                               <tbody>
                                 {tableData && tableData.length > 0 ? (
-                                  tableData.map((row: any, i: number) => (
-                                    <tr
-                                      key={i}
-                                      className="border-t border-[#222] hover:bg-white/5 transition-colors"
-                                    >
-                                      {Object.values(row).map((val: any, j) => (
-                                        <td
-                                          key={j}
-                                          className="px-4 py-3 text-xs text-gray-300 font-mono border-r border-[#222] last:border-r-0 min-w-[120px] max-w-[300px]"
-                                        >
-                                          <div className="truncate" title={String(val)}>
-                                            {val === null || val === undefined ? (
-                                              <span className="text-gray-600 italic">NULL</span>
-                                            ) : (
-                                              String(val)
-                                            )}
-                                          </div>
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))
+                                  tableData
+                                    .filter((row) =>
+                                      tableDataSearch
+                                        ? Object.values(row).some((val) =>
+                                            String(val).toLowerCase().includes(tableDataSearch.toLowerCase())
+                                          )
+                                        : true
+                                    )
+                                    .map((row: any, i: number) => (
+                                      <tr
+                                        key={i}
+                                        className="border-t border-[#222] hover:bg-white/5 transition-colors"
+                                      >
+                                        {Object.values(row).map((val: any, j) => (
+                                          <td
+                                            key={j}
+                                            className="px-4 py-3 text-xs text-gray-300 font-mono border-r border-[#222] last:border-r-0 min-w-[120px] max-w-[300px]"
+                                          >
+                                            <div className="truncate" title={String(val)}>
+                                              {val === null || val === undefined ? (
+                                                <span className="text-gray-600 italic">NULL</span>
+                                              ) : (
+                                                String(val)
+                                              )}
+                                            </div>
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    ))
                                 ) : (
                                   <tr>
                                     <td
