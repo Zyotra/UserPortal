@@ -1,4 +1,4 @@
-import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker, SiBun } from 'react-icons/si';
+import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker, SiBun, SiSpringboot } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
 export const AUTH_API_URL=import.meta.env.VITE_BACKEND_URL || "http://localhost:5050" as string;
 export const WEB_SERVICE_DEPLOYMENT_URL=import.meta.env.VITE_WEBSERVICE_DEPLOYMENT_URL ||"http://localhost:5053" as string;
@@ -37,6 +37,6 @@ export const backendFrameworks = [
     { value: 'ruby', label: 'Ruby', icon: SiRuby, color: 'text-red-500' },
     { value: 'php', label: 'PHP', icon: SiPhp, color: 'text-indigo-400' },
     { value: 'go', label: 'Go', icon: SiGo, color: 'text-cyan-500' },
-    { value: 'rust', label: 'Rust', icon: SiRust, color: 'text-orange-500' },
+    {value:'spring-boot',label:'Spring Boot', icon:SiSpringboot, color:'text-green-700'},
     { value: 'docker', label: 'Docker', icon: SiDocker, color: 'text-blue-500' }
   ];
