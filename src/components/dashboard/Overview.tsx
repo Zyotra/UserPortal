@@ -292,7 +292,7 @@ const Overview = () => {
         />
       )}
       {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
         <div className="relative flex-1 max-w-xl w-full">
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -301,23 +301,23 @@ const Overview = () => {
             className="w-full bg-black border border-[#333] rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-white transition-all placeholder-gray-600 text-white shadow-sm"
           />
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex gap-3 w-full sm:w-auto">
           <div className="flex bg-black rounded-xl p-1 border border-[#333]">
             <button className="p-2 rounded-lg bg-[#222] text-white shadow-sm"><FiGrid /></button>
             <button className="p-2 rounded-lg text-gray-500 hover:text-gray-300 transition-colors"><FiList /></button>
           </div>
           <button
             onClick={() => setShowMachineSelector(true)}
-            className="bg-white text-black px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all shadow-lg flex items-center gap-2 flex-1 md:flex-none justify-center"
+            className="bg-white text-black px-4 sm:px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all shadow-lg flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
-            <FiPlus className="text-lg" /> New Project
+            <FiPlus className="text-lg" /> <span className="hidden xs:inline">New</span> Project
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
         {/* Sidebar - Machines */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-4 lg:space-y-6 order-2 lg:order-1">
           <h3 className="text-sm font-semibold text-white">VPS Machines</h3>
 
           {machines.length === 0 ? (
@@ -378,21 +378,21 @@ const Overview = () => {
         </div>
 
         {/* Projects Grid */}
-        <div className="lg:col-span-3">
-          <div className="flex justify-between items-center mb-6">
+        <div className="lg:col-span-3 order-1 lg:order-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
             <h3 className="text-lg font-semibold text-white">Active Projects</h3>
             <span className="text-xs text-gray-500">Sorted by last activity</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
             {projects.length === 0 ? (
-              <div className="col-span-2 text-center py-12 text-gray-500">
+              <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
                 No projects yet. Deploy your first project!
               </div>
             ) : (
               projects.map((project, index) => (
-                <div key={project.id} className="group relative border border-[#333] rounded-2xl p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
-                  <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div key={project.id} className="group relative border border-[#333] rounded-2xl p-4 sm:p-6 bg-black hover:border-gray-500 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer">
+                  <div className="absolute top-4 sm:top-6 right-4 sm:right-6 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="relative">
                       <button
                         onClick={(e) => {

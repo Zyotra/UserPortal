@@ -209,17 +209,93 @@ const VPSMachines = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl font-semibold text-white">VPS Machines</h2>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
+          className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors w-full sm:w-auto"
         >
           Add New Machine
         </button>
       </div>
 
-      <div className="border border-[#333] rounded-lg overflow-hidden bg-black">
+      {/* Mobile Card View */}
+      <div className="block lg:hidden space-y-4">
+        {machines.map((machine) => (
+          <div key={machine.id} className="border border-[#333] rounded-lg p-4 bg-black">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-[#222] text-gray-300">
+                  <FiServer />
+                </div>
+                <div>
+                  <div className="font-medium text-white">{machine.vps_name}</div>
+                  <div className="text-xs text-gray-500">{machine.cpu_cores} uptime</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${machine.vps_status === 'Running' ? 'bg-green-500' : 'bg-green-500'}`}></div>
+                <span className="text-xs text-green-500">{machine.vps_status || "Running"}</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+              <div>
+                <span className="text-gray-500">IP Address</span>
+                <div className="font-mono text-gray-300 truncate">{machine.vps_ip}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Region</span>
+                <div className="text-gray-300">{machine.region || "us-east-1"}</div>
+              </div>
+              <div>
+                <span className="text-gray-500">Specs</span>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <span className="flex items-center gap-1"><FiCpu className="w-3 h-3" /> {machine.cpu_cores}</span>
+                  <span className="flex items-center gap-1"><FiActivity className="w-3 h-3" /> {machine.ram + "GB"}</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-500">Storage</span>
+                <div className="text-gray-300">{machine.storage + "GB"}</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#333]">
+              <button
+                onClick={() => handleGithubClick(machine.id, machine.vps_name)}
+                className="p-2 hover:bg-purple-500/10 rounded-md text-gray-400 hover:text-purple-400 transition-all border border-[#333] hover:border-purple-500/50"
+                title="GitHub Authentication"
+              >
+                <FiGithub />
+              </button>
+              <button
+                onClick={() => setAnalyticsModal({
+                  isOpen: true,
+                  machineId: machine.id,
+                  machineName: machine.vps_name,
+                  machineIp: machine.vps_ip
+                })}
+                className="p-2 hover:bg-blue-500/10 rounded-md text-gray-400 hover:text-blue-400 transition-all border border-[#333] hover:border-blue-500/50"
+                title="View Analytics"
+              >
+                <FiEye />
+              </button>
+              <button
+                disabled={true}
+                onClick={() => setDeleteId(machine.id)}
+                className="p-2 hover:bg-red-500/10 rounded-md text-gray-400 hover:text-red-500 transition-all border border-[#333] hover:border-red-500/50"
+                title="Delete Machine"
+              >
+                <FiTrash2 />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block border border-[#333] rounded-lg overflow-hidden bg-black">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-400">
             <thead className="bg-[#111] text-gray-200 border-b border-[#333]">

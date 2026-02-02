@@ -126,67 +126,75 @@ const Deployments = () => {
             ) : (
                 <div className="space-y-4">
                     {deployments.map((deployment) => (
-                        <div key={deployment.id} className="border border-[#333] rounded-lg p-4 bg-black hover:border-gray-500 transition-colors">
-                            <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
-                                <div className="flex items-start gap-4">
-                                    <div className="mt-1">
-                                        <div className={`w-2.5 h-2.5 rounded-full ${getStatusDotColor(deployment.status)}`}></div>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-medium text-white">{getProjectName(deployment.domain)}</h3>
-                                            <span className="text-gray-500 text-sm">•</span>
-                                            <a href={`https://${deployment.domain}`} target="_blank" rel="noreferrer" className="text-sm text-gray-400 hover:text-white hover:underline flex items-center gap-1">
-                                                {deployment.domain} <FiExternalLink className="text-xs" />
-                                            </a>
+                        <div key={deployment.id} className="border border-[#333] rounded-lg p-3 sm:p-4 bg-black hover:border-gray-500 transition-colors">
+                            <div className="flex flex-col gap-4">
+                                {/* Header with status */}
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                        <div className="mt-1.5 flex-shrink-0">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${getStatusDotColor(deployment.status)}`}></div>
                                         </div>
-                                        <div className="text-sm text-gray-300 mb-2">
-                                            {deployment.logs}
-                                        </div>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                <FiGithub /> {getRepoName(deployment.repoUrl)}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <FiServer /> {deployment.vpsIp}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <FiClock /> {formatDate(deployment.createdAt)}
-                                            </span>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+                                                <h3 className="font-medium text-white">{getProjectName(deployment.domain)}</h3>
+                                                <span className="text-gray-500 text-sm hidden sm:inline">•</span>
+                                                <a href={`https://${deployment.domain}`} target="_blank" rel="noreferrer" className="text-sm text-gray-400 hover:text-white hover:underline flex items-center gap-1 truncate max-w-[200px] sm:max-w-none">
+                                                    <span className="truncate">{deployment.domain}</span> <FiExternalLink className="text-xs flex-shrink-0" />
+                                                </a>
+                                            </div>
+                                            <div className="text-sm text-gray-300 mb-2 line-clamp-2 sm:line-clamp-1">
+                                                {deployment.logs}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 relative">
-                                    <span className={`px-2 py-0.5 rounded text-xs border ${getStatusColor(deployment.status)}`}>
-                                        {getStatusText(deployment.status)}
-                                    </span>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveDropdown(activeDropdown === deployment.id ? null : deployment.id);
-                                        }}
-                                        className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        <FiMoreVertical />
-                                    </button>
-
-                                    {activeDropdown === deployment.id && (
-                                        <div className="absolute right-0 top-8 w-36 bg-[#111] border border-[#333] rounded-lg shadow-xl z-10 overflow-hidden">
+                                    
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className={`px-2 py-0.5 rounded text-xs border whitespace-nowrap ${getStatusColor(deployment.status)}`}>
+                                            {getStatusText(deployment.status)}
+                                        </span>
+                                        <div className="relative">
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setSelectedDeployment({ deploymentId: deployment.deploymentId, domain: deployment.domain });
-                                                    setIsViewLogsModalOpen(true);
-                                                    setActiveDropdown(null);
+                                                    setActiveDropdown(activeDropdown === deployment.id ? null : deployment.id);
                                                 }}
-                                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#222] hover:text-white transition-colors"
+                                                className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors"
                                             >
-                                                <FiEye size={14} />
-                                                View Logs
+                                                <FiMoreVertical />
                                             </button>
+
+                                            {activeDropdown === deployment.id && (
+                                                <div className="absolute right-0 top-full mt-1 w-36 bg-[#111] border border-[#333] rounded-lg shadow-xl z-10 overflow-hidden">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedDeployment({ deploymentId: deployment.deploymentId, domain: deployment.domain });
+                                                            setIsViewLogsModalOpen(true);
+                                                            setActiveDropdown(null);
+                                                        }}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#222] hover:text-white transition-colors"
+                                                    >
+                                                        <FiEye size={14} />
+                                                        View Logs
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+                                
+                                {/* Meta info */}
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 pl-5 sm:pl-6">
+                                    <span className="flex items-center gap-1 truncate max-w-[150px] sm:max-w-none">
+                                        <FiGithub className="flex-shrink-0" /> <span className="truncate">{getRepoName(deployment.repoUrl)}</span>
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <FiServer className="flex-shrink-0" /> {deployment.vpsIp}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <FiClock className="flex-shrink-0" /> {formatDate(deployment.createdAt)}
+                                    </span>
                                 </div>
                             </div>
                         </div>

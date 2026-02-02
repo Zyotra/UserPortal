@@ -97,66 +97,116 @@ const Domains = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl font-semibold text-white">Domains</h2>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="bg-white text-black px-4 py-2 gap-2 rounded-md text-sm font-medium hover:bg-gray-200 flex transition-colors"
+          className="bg-white text-black px-4 py-2 gap-2 rounded-md text-sm font-medium hover:bg-gray-200 flex transition-colors w-full sm:w-auto justify-center"
         >
           Add Domain or Subdomain
         </button>
       </div>
 
-      <div className="border border-[#333] rounded-lg overflow-hidden bg-black">
-        <table className="w-full text-left text-sm text-gray-400">
-          <thead className="bg-[#111] text-gray-200 border-b border-[#333]">
-            <tr>
-              <th className="px-6 py-3 font-medium">Domain</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium">Linked VPS</th>
-              <th className="px-6 py-3 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#333]">
-            {domains.map((domain) => (
-              <tr key={domain.id} className="hover:bg-[#111] transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-[#222] text-gray-300">
-                      <FiGlobe />
-                    </div>
-                    <span className="font-medium text-white">{domain.domain_address}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {domain.isDeployed ? (
-                      <FiCheckCircle className="text-green-500" />
-                    ) : (
-                      <FiAlertCircle className="text-yellow-500" />
-                    )}
-                    <span className={domain.isDeployed ? 'text-green-500' : 'text-yellow-500'}>
-                      {domain.isDeployed ? 'Deployed' : 'Pending Deployment'}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="font-mono text-gray-300">{domain.vps_ip}</span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => setDeleteId(domain.id)}
-                    disabled={domain.isDeployed}
-                    className={"p-2 hover:bg-[#222] border-2 rounded-md text-gray-400 hover:text-red-500 transition-colors" + (domain.isDeployed ? " opacity-50 cursor-not-allowed" : "")}
-                    title="Delete Domain"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
+      {/* Mobile Card View */}
+      <div className="block md:hidden space-y-4">
+        {domains.map((domain) => (
+          <div key={domain.id} className="border border-[#333] rounded-lg p-4 bg-black">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-[#222] text-gray-300">
+                  <FiGlobe />
+                </div>
+                <span className="font-medium text-white text-sm break-all">{domain.domain_address}</span>
+              </div>
+            </div>
+            
+            <div className="space-y-2 mb-4 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Status</span>
+                <div className="flex items-center gap-2">
+                  {domain.isDeployed ? (
+                    <FiCheckCircle className="text-green-500" />
+                  ) : (
+                    <FiAlertCircle className="text-yellow-500" />
+                  )}
+                  <span className={domain.isDeployed ? 'text-green-500' : 'text-yellow-500'}>
+                    {domain.isDeployed ? 'Deployed' : 'Pending'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500">Linked VPS</span>
+                <span className="font-mono text-gray-300 text-xs">{domain.vps_ip}</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-end pt-3 border-t border-[#333]">
+              <button 
+                onClick={() => setDeleteId(domain.id)}
+                disabled={domain.isDeployed}
+                className={"p-2 hover:bg-[#222] border-2 rounded-md text-gray-400 hover:text-red-500 transition-colors" + (domain.isDeployed ? " opacity-50 cursor-not-allowed" : "")}
+                title="Delete Domain"
+              >
+                <FiTrash2 />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block border border-[#333] rounded-lg overflow-hidden bg-black">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-400">
+            <thead className="bg-[#111] text-gray-200 border-b border-[#333]">
+              <tr>
+                <th className="px-6 py-3 font-medium">Domain</th>
+                <th className="px-6 py-3 font-medium">Status</th>
+                <th className="px-6 py-3 font-medium">Linked VPS</th>
+                <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[#333]">
+              {domains.map((domain) => (
+                <tr key={domain.id} className="hover:bg-[#111] transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-md bg-[#222] text-gray-300">
+                        <FiGlobe />
+                      </div>
+                      <span className="font-medium text-white">{domain.domain_address}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {domain.isDeployed ? (
+                        <FiCheckCircle className="text-green-500" />
+                      ) : (
+                        <FiAlertCircle className="text-yellow-500" />
+                      )}
+                      <span className={domain.isDeployed ? 'text-green-500' : 'text-yellow-500'}>
+                        {domain.isDeployed ? 'Deployed' : 'Pending Deployment'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-mono text-gray-300">{domain.vps_ip}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button 
+                      onClick={() => setDeleteId(domain.id)}
+                      disabled={domain.isDeployed}
+                      className={"p-2 hover:bg-[#222] border-2 rounded-md text-gray-400 hover:text-red-500 transition-colors" + (domain.isDeployed ? " opacity-50 cursor-not-allowed" : "")}
+                      title="Delete Domain"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showAddModal && (

@@ -234,12 +234,12 @@ const Projects = () => {
         <div className="space-y-6">
             {/* Loading Overlay for operations */}
             {showLoadingOverlay && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     {/* Blurred Background */}
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
                     {/* Content */}
-                    <div className="relative z-10 flex flex-col items-center bg-[#111] border border-[#333] rounded-2xl p-8 shadow-2xl">
+                    <div className="relative z-10 flex flex-col items-center bg-[#111] border border-[#333] rounded-2xl p-6 sm:p-8 shadow-2xl w-full max-w-sm">
                         {/* Logo with animation */}
                         <div className="relative mb-6">
                             {operationStatus === 'loading' && (
@@ -311,7 +311,7 @@ const Projects = () => {
                 </div>
             )}
 
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
                 <div className="relative flex-1 max-w-md w-full">
                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                     <input
@@ -332,28 +332,28 @@ const Projects = () => {
                 <div className="grid grid-cols-1 gap-4">
                     {filteredProjects.map((project) => (
                         <div key={project.id} className="border border-[#333] rounded-lg bg-black hover:border-gray-400 transition-all duration-200 group relative">
-                            <div className="p-6">
-                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div className="p-4 sm:p-6">
+                                <div className="flex flex-col gap-4 lg:gap-6">
                                     {/* Left Section - Domain & Status */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start gap-4">
+                                        <div className="flex items-start gap-3 sm:gap-4">
                                             {/* Status Indicator */}
                                             <div className="flex-shrink-0 mt-1">
-                                                <div className={`w-10 h-10 rounded-lg bg-opacity-10 border border-current flex items-center justify-center text-lg`}>
+                                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-opacity-10 border border-current flex items-center justify-center text-base sm:text-lg`}>
                                                     {getProjectIcon(project)}
                                                 </div>
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 {/* Domain */}
-                                                <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                                                     <a
                                                         href={`https://${project.domain}`}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="text-lg font-semibold text-white hover:text-gray-300 transition-colors flex items-center gap-2 group/link"
+                                                        className="text-base sm:text-lg font-semibold text-white hover:text-gray-300 transition-colors flex items-center gap-2 group/link"
                                                     >
-                                                        <span className="truncate">{project.domain}</span>
+                                                        <span className="truncate max-w-[200px] sm:max-w-none">{project.domain}</span>
                                                         <FiExternalLink className="text-sm flex-shrink-0 opacity-0 group-hover/link:opacity-100 transition-opacity" />
                                                     </a>
                                                     <div className="flex items-center gap-2">
@@ -369,27 +369,27 @@ const Projects = () => {
                                                         href={project.repoUrl.replace('.git', '')}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="hover:text-white transition-colors truncate font-mono"
+                                                        className="hover:text-white transition-colors truncate font-mono text-xs sm:text-sm"
                                                     >
                                                         {getRepoName(project.repoUrl)}
                                                     </a>
                                                 </div>
 
                                                 {/* Logs */}
-                                                <div className="bg-[#0a0a0a] border border-[#222] rounded-md p-3 mb-3">
-                                                    <p className="text-xs font-mono text-gray-400 leading-relaxed">
+                                                <div className="bg-[#0a0a0a] border border-[#222] rounded-md p-2 sm:p-3 mb-3">
+                                                    <p className="text-xs font-mono text-gray-400 leading-relaxed line-clamp-2 sm:line-clamp-none">
                                                         {project.logs}
                                                     </p>
                                                 </div>
 
                                                 {/* Bottom Info */}
-                                                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500">
                                                     <div className="flex items-center gap-1.5">
                                                         <FiServer className="flex-shrink-0" />
                                                         <span className="font-mono">{project.vpsIp}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="bg-[#111] border border-[#333] px-2 py-0.5 rounded font-mono">
+                                                    <div className="hidden sm:flex items-center gap-1.5">
+                                                        <span className="bg-[#111] border border-[#333] px-2 py-0.5 rounded font-mono truncate max-w-[100px]">
                                                             {project.deploymentId}
                                                         </span>
                                                     </div>
@@ -403,7 +403,7 @@ const Projects = () => {
                                     </div>
 
                                     {/* Right Section - Actions */}
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-2 flex-shrink-0 self-end lg:self-auto">
                                         {/* View Logs Button */}
                                         <button
                                             onClick={(e) => {
@@ -443,7 +443,7 @@ const Projects = () => {
                                                     />
 
                                                     {/* Dropdown Menu */}
-                                                    <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
+                                                    <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden max-w-[calc(100vw-2rem)]">
                                                         <div className="py-1">
                                                             {/* Deploy Latest Commit */}
                                                             <button

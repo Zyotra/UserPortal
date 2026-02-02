@@ -24,11 +24,11 @@ const Billings = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="space-y-6 lg:space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Current Plan */}
-        <div className="md:col-span-2 border border-[#333] rounded-lg p-6 bg-black">
-          <div className="flex justify-between items-start mb-6">
+        <div className="lg:col-span-2 border border-[#333] rounded-lg p-4 sm:p-6 bg-black">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-6">
             <div>
               <h3 className="text-lg font-medium text-white mb-1">Pro Plan</h3>
               <p className="text-sm text-gray-400">$20 per month / member</p>
@@ -38,34 +38,34 @@ const Billings = () => {
           
           <div className="space-y-4 mb-6">
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <FiCheck className="text-white" /> <span>Unlimited Projects</span>
+              <FiCheck className="text-white flex-shrink-0" /> <span>Unlimited Projects</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <FiCheck className="text-white" /> <span>1TB Bandwidth</span>
+              <FiCheck className="text-white flex-shrink-0" /> <span>1TB Bandwidth</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <FiCheck className="text-white" /> <span>Unlimited Serverless Functions</span>
+              <FiCheck className="text-white flex-shrink-0" /> <span>Unlimited Serverless Functions</span>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <button className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button className="bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors w-full sm:w-auto">
               Manage Subscription
             </button>
-            <button className="text-gray-400 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <button className="text-gray-400 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full sm:w-auto">
               Contact Sales
             </button>
           </div>
         </div>
 
         {/* Payment Method */}
-        <div className="border border-[#333] rounded-lg p-6 bg-black">
+        <div className="border border-[#333] rounded-lg p-4 sm:p-6 bg-black">
           <h3 className="text-lg font-medium text-white mb-6">Payment Method</h3>
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-8 bg-[#222] rounded border border-[#333] flex items-center justify-center">
+            <div className="w-12 h-8 bg-[#222] rounded border border-[#333] flex items-center justify-center flex-shrink-0">
               <FiCreditCard className="text-gray-400" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-sm font-medium text-white">Visa ending in 4242</div>
               <div className="text-xs text-gray-500">Expires 12/2028</div>
             </div>
@@ -79,37 +79,68 @@ const Billings = () => {
       {/* Invoices */}
       <div>
         <h3 className="text-xl font-semibold text-white mb-4">Invoices</h3>
-        <div className="border border-[#333] rounded-lg overflow-hidden bg-black">
-          <table className="w-full text-left text-sm text-gray-400">
-            <thead className="bg-[#111] text-gray-200 border-b border-[#333]">
-              <tr>
-                <th className="px-6 py-3 font-medium">Invoice</th>
-                <th className="px-6 py-3 font-medium">Date</th>
-                <th className="px-6 py-3 font-medium">Amount</th>
-                <th className="px-6 py-3 font-medium">Status</th>
-                <th className="px-6 py-3 font-medium text-right">Download</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#333]">
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-[#111] transition-colors">
-                  <td className="px-6 py-4 font-medium text-white">{invoice.id}</td>
-                  <td className="px-6 py-4">{invoice.date}</td>
-                  <td className="px-6 py-4">{invoice.amount}</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-xs">
-                      {invoice.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors">
-                      <FiDownload />
-                    </button>
-                  </td>
+        
+        {/* Mobile Card View */}
+        <div className="block sm:hidden space-y-4">
+          {invoices.map((invoice) => (
+            <div key={invoice.id} className="border border-[#333] rounded-lg p-4 bg-black">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium text-white">{invoice.id}</span>
+                <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-xs">
+                  {invoice.status}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div>
+                  <div className="text-gray-500">Date</div>
+                  <div className="text-gray-300">{invoice.date}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-gray-500">Amount</div>
+                  <div className="text-gray-300">{invoice.amount}</div>
+                </div>
+                <button className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors">
+                  <FiDownload />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden sm:block border border-[#333] rounded-lg overflow-hidden bg-black">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-400">
+              <thead className="bg-[#111] text-gray-200 border-b border-[#333]">
+                <tr>
+                  <th className="px-6 py-3 font-medium">Invoice</th>
+                  <th className="px-6 py-3 font-medium">Date</th>
+                  <th className="px-6 py-3 font-medium">Amount</th>
+                  <th className="px-6 py-3 font-medium">Status</th>
+                  <th className="px-6 py-3 font-medium text-right">Download</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#333]">
+                {invoices.map((invoice) => (
+                  <tr key={invoice.id} className="hover:bg-[#111] transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">{invoice.id}</td>
+                    <td className="px-6 py-4">{invoice.date}</td>
+                    <td className="px-6 py-4">{invoice.amount}</td>
+                    <td className="px-6 py-4">
+                      <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-xs">
+                        {invoice.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="p-2 hover:bg-[#222] rounded-md text-gray-400 hover:text-white transition-colors">
+                        <FiDownload />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

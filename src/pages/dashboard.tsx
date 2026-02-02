@@ -15,7 +15,9 @@ import {
     FiCreditCard,
     FiSliders,
     FiCommand,
-    FiDatabase
+    FiDatabase,
+    FiMenu,
+    FiX
 } from 'react-icons/fi';
 import { MdCached } from 'react-icons/md';
 import Overview from '../components/dashboard/Overview';
@@ -38,6 +40,7 @@ const Dashboard = () => {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [loading, setLoading] = useState(true); // Start with loading true
     const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -88,6 +91,23 @@ const Dashboard = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [navigate]);
+
+    // Close mobile menu when tab changes
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [activeTab]);
+
+    // Prevent body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.classList.add('sidebar-open');
+        } else {
+            document.body.classList.remove('sidebar-open');
+        }
+        return () => {
+            document.body.classList.remove('sidebar-open');
+        };
+    }, [mobileMenuOpen]);
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -153,11 +173,19 @@ const Dashboard = () => {
             <header className="fixed top-0 left-0 right-0 h-14 bg-black/40 backdrop-blur-xl border-b border-white/5 z-50">
                 <div className="h-full px-4 flex items-center justify-between">
                     {/* Left Section */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                            aria-label="Toggle menu"
+                        >
+                            {mobileMenuOpen ? <FiX className="text-lg" /> : <FiMenu className="text-lg" />}
+                        </button>
                         <ZyotraLogo className="w-7 h-7" />
-                        <div className="h-6 w-[1px] bg-white/10"></div>
+                        <div className="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
                         <div className="flex items-center gap-2 cursor-pointer group">
-                            <span className="font-medium text-sm text-white/90">Zyotra</span>
+                            <span className="font-medium text-sm text-white/90 hidden sm:block">Zyotra</span>
                         </div>
                     </div>
 
@@ -225,12 +253,23 @@ const Dashboard = () => {
             </header>
 
             {/* Sidebar Navigation */}
-            <aside className={`fixed left-0 top-14 bottom-0 bg-black/20 backdrop-blur-sm border-r border-white/5 z-40 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+            {/* Mobile Overlay */}
+            {mobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            
+            <aside className={`fixed left-0 top-14 bottom-0 bg-black/20 backdrop-blur-sm border-r border-white/5 z-40 transition-all duration-300 
+                ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+                ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
+                lg:translate-x-0`}>
                 <div className="h-full flex flex-col py-6">
-                    {/* Toggle Button */}
+                    {/* Toggle Button - Hidden on mobile */}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="absolute -right-3 top-8 w-6 h-6 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all"
+                        className="hidden lg:flex absolute -right-3 top-8 w-6 h-6 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full items-center justify-center text-gray-400 hover:text-white transition-all"
                     >
                         <FiChevronDown className={`text-xs transform transition-transform ${sidebarCollapsed ? 'rotate-90' : '-rotate-90'}`} />
                     </button>
@@ -281,8 +320,8 @@ const Dashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className={`pt-14 transition-all duration-300 ${sidebarCollapsed ? 'pl-16' : 'pl-64'}`}>
-                <div className="p-8">
+            <main className={`pt-14 transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'} pl-0`}>
+                <div className="p-4 sm:p-6 lg:p-8">
                     {renderContent()}
                 </div>
             </main>
