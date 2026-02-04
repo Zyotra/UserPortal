@@ -20,10 +20,12 @@ import { SiPostgresql, SiMysql, SiMongodb, SiRedis } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../utils/apiClient";
 import {
+  AUTH_API_URL,
   DEPLOYMENT_MANAGER_URL,
   STORAGE_LAYER_DEPOYMENT_URL,
 } from "../../types";
 import ConfirmationModal from "./ConfirmationModal";
+import VPSMachines from "./VPSMachines";
 
 interface Database {
   id: number | string;
@@ -370,6 +372,7 @@ const Databases = () => {
       console.error("Error fetching databases:", error);
     }
   }
+
 
   async function fetchMachines() {
     try {

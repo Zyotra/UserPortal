@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiCpu, FiTerminal, FiCheckCircle, FiXCircle, FiCode, FiSearch, FiDatabase } from 'react-icons/fi';
-import { backendFrameworks, DEPLOYMENT_MANAGER_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
+import { AUTH_API_URL, backendFrameworks, DEPLOYMENT_MANAGER_URL, WEB_SERVICE_DEPLOYMENT_URL } from '../../types';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
 const AddProject = () => {
@@ -15,7 +15,8 @@ const AddProject = () => {
   const [availableDomains, setAvailableDomains] = useState<{ domain_address: string; id: number }[]>([]);
   const [projectTypeSearch, setProjectTypeSearch] = useState('');
   const [showProjectTypeDropdown, setShowProjectTypeDropdown] = useState(false);
-
+  const [usedPorts,setUsedPorts]= useState<number[]>([]);
+  const [portError,setPortError]=useState<string>('');
   const machineId = location.state?.vpsId || '';
   
   useEffect(() => {
@@ -39,7 +40,20 @@ const AddProject = () => {
     sourceDir: '',
   });
   const [hasSubDirectory, setHasSubDirectory] = useState(false);
-
+    async function fetchUsedPorts(){
+      try {
+        const res=await apiClient(`${AUTH_API_URL}/get-port/${machineId}`,{
+          method: "GET",
+        });
+        const data = await res.json();
+        console.log(data)
+        if (data.data) {
+          setUsedPorts(data.data.usedPorts);
+        }
+      } catch (error) {
+        console.error("Error fetching used ports:", error);
+      }
+    }
   useEffect(() => {
     if (messages) {
       if (messages.deploymentId && !formData.deploymentId) {
@@ -87,7 +101,7 @@ const AddProject = () => {
         console.error('Error fetching domains:', error);
       }
     };
-    
+    fetchUsedPorts();
     fetchDomains();
   }, []);
 
@@ -113,7 +127,16 @@ const AddProject = () => {
   const handleEnvChange = (index: number, field: 'key' | 'value', value: string) => {
     const newEnvVars = [...envVars];
     newEnvVars[index][field] = value;
-    setEnvVars(newEnvVars);
+    if(envVars[0].key==='PORT'){
+      if(usedPorts.includes(Number(newEnvVars[0].value))){
+        setPortError(`Port ${newEnvVars[0].value} is already in use. Please choose a different port.`);
+      } else {
+        setPortError('');
+        setEnvVars(newEnvVars);
+      }
+    } else {
+      setEnvVars(newEnvVars);
+    }
   };
 
   const addEnvVar = () => {
@@ -534,37 +557,44 @@ const AddProject = () => {
 
             <div className="space-y-4">
               {envVars.map((env, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="KEY"
-                      value={env.key}
-                      onChange={(e) => handleEnvChange(index, 'key', e.target.value)}
+                <div key={index}>
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        placeholder="KEY"
+                        value={env.key}
+                        onChange={(e) => handleEnvChange(index, 'key', e.target.value)}
+                        disabled={env.required}
+                        className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+                        required={env.required}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        placeholder={env.required ? "VALUE (Required)" : "VALUE"}
+                        value={env.value}
+                        onChange={(e) => handleEnvChange(index, 'value', e.target.value)}
+                        className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
+                        required={env.required}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeEnvVar(index)}
+                      className={`p-3 transition-colors ${env.required ? 'text-gray-700 cursor-not-allowed' : 'text-gray-500 hover:text-red-500'}`}
                       disabled={env.required}
-                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono disabled:opacity-60 disabled:cursor-not-allowed"
-                      required={env.required}
-                    />
+                      title={env.required ? 'This variable is required' : 'Remove variable'}
+                    >
+                      <FiTrash2 />
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder={env.required ? "VALUE (Required)" : "VALUE"}
-                      value={env.value}
-                      onChange={(e) => handleEnvChange(index, 'value', e.target.value)}
-                      className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white font-mono"
-                      required={env.required}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeEnvVar(index)}
-                    className={`p-3 transition-colors ${env.required ? 'text-gray-700 cursor-not-allowed' : 'text-gray-500 hover:text-red-500'}`}
-                    disabled={env.required}
-                    title={env.required ? 'This variable is required' : 'Remove variable'}
-                  >
-                    <FiTrash2 />
-                  </button>
+                  {env.key === 'PORT' && portError && (
+                    <div className="mt-2 text-sm text-red-500 text-left">
+                      {portError}
+                    </div>
+                  )}
                 </div>
               ))}
               
