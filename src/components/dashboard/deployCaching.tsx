@@ -17,6 +17,8 @@ const DeployCaching = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [responseMessage, setResponseMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [usedPorts, setUsedPorts] = useState<number[]>([]);
+  const [portError, setPortError] = useState<string>('');
 
   const machineId = location.state?.vpsId || '';
   const machineIp = location.state?.vpsIp || '';
@@ -26,6 +28,21 @@ const DeployCaching = () => {
       navigate('/dashboard');
     }
   }, [machineId, navigate]);
+
+  async function fetchUsedPorts(){
+    try {
+      const res = await apiClient(`${STORAGE_LAYER_DEPOYMENT_URL}/get-port/${machineId}`, {
+        method: "GET",
+      });
+      const data = await res.json();
+      console.log(data)
+      if (data.data) {
+        setUsedPorts(data.data.usedPorts);
+      }
+    } catch (error) {
+      console.error("Error fetching used ports:", error);
+    }
+  }
 
   const [formData, setFormData] = useState({
     vpsId: machineId,
@@ -37,6 +54,13 @@ const DeployCaching = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === 'port') {
+      if (usedPorts.includes(Number(value))) {
+        setPortError(`Port ${value} is already in use. Please choose a different port.`);
+      } else {
+        setPortError('');
+      }
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -52,10 +76,18 @@ const DeployCaching = () => {
     if (location.state?.vpsIp) {
       setFormData(prev => ({ ...prev, vpsIp: location.state.vpsIp }));
     }
+    fetchUsedPorts();
   }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if port is already in use
+    if (usedPorts.includes(Number(formData.port))) {
+      setPortError(`Port ${formData.port} is already in use. Please choose a different port.`);
+      return;
+    }
+    
     setLoading(true);
     setDeploymentStatus('deploying');
     setResponseMessage(null);
@@ -447,6 +479,11 @@ const DeployCaching = () => {
                     className="w-full bg-black border border-[#333] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-white transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     required
                   />
+                  {portError && (
+                    <div className="mt-2 text-sm text-red-500 text-left">
+                      {portError}
+                    </div>
+                  )}
                   <p className="text-xs text-gray-500">
                     Default Redis port is 6379
                   </p>
