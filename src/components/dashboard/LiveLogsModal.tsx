@@ -24,7 +24,6 @@ const LiveLogsModal = ({
     const [logs, setLogs] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    // Default to live mode only if logType is 'live'
     const [isLive, setIsLive] = useState(logType === 'live');
     const logsEndRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<number | null>(null);
@@ -36,11 +35,11 @@ const LiveLogsModal = ({
     const fetchLogs = async () => {
         try {
             setError(null);
-            
+
             // Create new AbortController
             const controller = new AbortController();
             abortControllerRef.current = controller;
-            
+
             // Determine endpoint based on logType
             const endpoint = logType === 'live'
                 ? `${baseUrl}/live-logs/${deploymentId}`
@@ -53,12 +52,12 @@ const LiveLogsModal = ({
 
             if (response.ok) {
                 setLoading(false);
-                
+
                 const contentType = response.headers.get("content-type");
-                
+
                 // Check if it's a streaming response (SSE) - only for live logs
                 const isStreaming = logType === 'live' && response.body;
-                
+
                 if (isStreaming) {
                     // Handle streaming response (SSE)
                     const reader = response.body!.getReader();
@@ -71,25 +70,25 @@ const LiveLogsModal = ({
                             if (done) break;
 
                             accumulatedText += decoder.decode(value, { stream: true });
-                            
+
                             // Process complete SSE messages
                             const lines = accumulatedText.split('\n');
-                            
+
                             // Keep the last incomplete line in accumulator
                             accumulatedText = lines[lines.length - 1];
-                            
+
                             // Process all complete lines
                             for (let i = 0; i < lines.length - 1; i++) {
                                 const line = lines[i].trim();
-                                
+
                                 if (line.startsWith('data: ')) {
                                     try {
                                         const jsonStr = line.substring(6); // Remove "data: " prefix
                                         const parsed = JSON.parse(jsonStr);
-                                        
+
                                         // Format the log entry
                                         let formattedLog = '';
-                                        
+
                                         if (parsed.type === 'connected') {
                                             formattedLog = `[CONNECTED] Deployment: ${parsed.deploymentId}`;
                                         } else if (parsed.type === 'closed') {
@@ -97,13 +96,13 @@ const LiveLogsModal = ({
                                         } else if (parsed.type === 'log' || parsed.type === 'error') {
                                             const timestamp = parsed.timestamp ? new Date(parsed.timestamp).toLocaleTimeString() : '';
                                             const logData = parsed.data || '';
-                                            
-                                        // Split multi-line logs
+
+                                            // Split multi-line logs
                                             const logLines = logData.split('\n').filter((l: string) => l.trim());
-                                            
+
                                             logLines.forEach((logLine: string, idx: number) => {
                                                 let formattedLine = logLine;
-                                                
+
                                                 // Try to detect and format JSON
                                                 const jsonMatch = logLine.match(/\{.*\}|\[.*\]/);
                                                 if (jsonMatch) {
@@ -114,13 +113,13 @@ const LiveLogsModal = ({
                                                         // Not valid JSON, keep original
                                                     }
                                                 }
-                                                
+
                                                 if (idx === 0 && timestamp) {
                                                     formattedLog = `[${timestamp}] ${formattedLine}`;
                                                 } else {
                                                     formattedLog = formattedLine;
                                                 }
-                                                
+
                                                 setLogs(prev => {
                                                     // Avoid duplicates
                                                     if (!prev.includes(formattedLog)) {
@@ -130,7 +129,7 @@ const LiveLogsModal = ({
                                                 });
                                             });
                                         }
-                                        
+
                                         if (formattedLog && parsed.type !== 'log' && parsed.type !== 'error') {
                                             setLogs(prev => [...prev, formattedLog]);
                                         }
@@ -140,7 +139,7 @@ const LiveLogsModal = ({
                                 }
                             }
                         }
-                        
+
                         // Process any remaining accumulated text
                         if (accumulatedText.trim().startsWith('data: ')) {
                             try {
@@ -162,7 +161,7 @@ const LiveLogsModal = ({
                     // Handle JSON responses
                     const data = await response.json();
                     let newLogLines: string[] = [];
-                    
+
                     if (data.logs) {
                         newLogLines = Array.isArray(data.logs)
                             ? data.logs
@@ -176,7 +175,7 @@ const LiveLogsModal = ({
                             ? data.log
                             : data.log.split('\n').filter((line: string) => line.trim());
                     }
-                    
+
                     setLogs(prev => [...prev, ...newLogLines]);
                 } else {
                     // Handle plain text responses

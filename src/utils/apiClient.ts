@@ -1,7 +1,8 @@
 import { AUTH_API_URL } from "../types";
-export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
+import toast from 'react-hot-toast';
+export const apiClient = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
   const token = localStorage.getItem('accessToken');
-  
+
   const defaultHeaders = {
     "Content-Type": "application/json",
     ...(token ? { "Authorization": `Bearer ${token}` } : {})
@@ -31,11 +32,11 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
       if (refreshResponse.ok) {
         const refreshData = await refreshResponse.json();
         localStorage.setItem('accessToken', refreshData.accessToken);
-        
+
         // Update the Authorization header with the new token
         const newHeaders = {
-            ...config.headers,
-            "Authorization": `Bearer ${refreshData.accessToken}`
+          ...config.headers,
+          "Authorization": `Bearer ${refreshData.accessToken}`
         };
 
         // Retry the original request
@@ -51,6 +52,12 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
       window.location.href = '/login';
       throw error;
     }
+  }
+
+  // Handle 429 Rate Limiting
+  if (response.status === 429) {
+    toast.error("Too many requests. Please try again later.");
+    throw new Error("Rate limit exceeded");
   }
 
   return response;
