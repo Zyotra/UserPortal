@@ -176,7 +176,7 @@ const Projects = () => {
 
         try {
             let response;
-            if (projectType === "ui") {
+            if (projectType.toLowerCase() == "ui") {
                 response = await apiClient(`${UI_DEPLOYMENT_URL}/deploy-latest-ui-commit/${deploymentId}`, {
                     method: 'GET',
                 });

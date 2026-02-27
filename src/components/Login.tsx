@@ -20,9 +20,11 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const response = await apiClient(`${AUTH_API_URL}/login`, {
@@ -42,6 +44,8 @@ const Login = () => {
     } catch (err) {
       console.error(err);
       setError('Failed to connect to server. Please check your connection.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,9 +133,16 @@ const Login = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#23262f] border border-[#2e3036] text-white py-2.5 px-4 rounded hover:bg-[#2d313a] transition-colors text-sm font-medium"
+                disabled={loading}
+                className="w-full bg-[#23262f] border border-[#2e3036] text-white py-2.5 px-4 rounded hover:bg-[#2d313a] transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue
+                {loading && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {loading ? 'Logging in...' : 'Continue'}
               </button>
             </form>
 
@@ -144,8 +155,6 @@ const Login = () => {
           <Link to="/register" className="text-[#d4a373] underline hover:text-[#e0b484] text-sm transition-colors">
             Sign up for Zyotra
           </Link>
-
-          i
         </div>
 
         {/* Footer */}
