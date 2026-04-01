@@ -130,21 +130,28 @@ const Overview = () => {
     return domain.split('.')[0];
   };
 
-  const handleDeployLatestCommit = async (deploymentId: string, projectId: number) => {
+  const handleDeployLatestCommit = async (deploymentId: string, projectId: number, projectType: string) => {
     if (deployingProjectId) return; // Prevent multiple simultaneous deployments
-    
+
     setDeployingProjectId(projectId);
     setActiveDropdown(null);
     setShowLoadingOverlay(true);
     setLoadingMessage('Deploying latest commit...');
     setOperationStatus('loading');
-    
+
     try {
-      const response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
-        method: 'GET',
-      });
+      let response
+      if (projectType.toLowerCase() == "ui") {
+        response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-ui-commit/${deploymentId}`, {
+          method: 'GET',
+        });
+      } else {
+        response = await apiClient(`${WEB_SERVICE_DEPLOYMENT_URL}/deploy-latest-commit/${deploymentId}`, {
+          method: 'GET',
+        });
+      }
       const data = await response.json();
-      
+
       if (response.ok && data.status === 'success') {
         setOperationStatus('success');
         setLoadingMessage('Deployment successful!');
@@ -210,7 +217,7 @@ const Overview = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Blurred Background */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          
+
           {/* Content */}
           <div className="relative z-10 flex flex-col items-center bg-[#111] border border-[#333] rounded-2xl p-8 shadow-2xl">
             {/* Logo with animation */}
@@ -225,19 +232,18 @@ const Overview = () => {
                   <div className="absolute inset-0 w-20 h-20 rounded-full bg-[#e4b2b3]/10 animate-pulse" />
                 </>
               )}
-              
+
               {operationStatus === 'success' && (
                 <div className="absolute inset-0 w-20 h-20 rounded-full bg-green-500/20 animate-pulse" />
               )}
-              
+
               {operationStatus === 'error' && (
                 <div className="absolute inset-0 w-20 h-20 rounded-full bg-red-500/20 animate-pulse" />
               )}
-              
+
               {/* Logo */}
-              <div className={`relative w-20 h-20 flex items-center justify-center ${
-                operationStatus === 'loading' ? 'animate-pulse' : ''
-              }`}>
+              <div className={`relative w-20 h-20 flex items-center justify-center ${operationStatus === 'loading' ? 'animate-pulse' : ''
+                }`}>
                 <ZyotraLogo className="w-14 h-14" />
               </div>
             </div>
@@ -262,7 +268,7 @@ const Overview = () => {
             <h2 className="text-lg font-semibold text-white mb-2 text-center">
               {loadingMessage}
             </h2>
-            
+
             {operationStatus === 'loading' && (
               <div className="flex items-center gap-2 text-gray-400 text-sm">
                 <span>Please wait</span>
@@ -273,11 +279,11 @@ const Overview = () => {
                 </span>
               </div>
             )}
-            
+
             {operationStatus === 'success' && (
               <p className="text-green-400/80 text-sm">Completed</p>
             )}
-            
+
             {operationStatus === 'error' && (
               <p className="text-red-400/80 text-sm">Please try again</p>
             )}
@@ -407,14 +413,14 @@ const Overview = () => {
                       {activeDropdown === project.id && (
                         <>
                           {/* Backdrop */}
-                          <div 
-                            className="fixed inset-0 z-40" 
+                          <div
+                            className="fixed inset-0 z-40"
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveDropdown(null);
                             }}
                           />
-                          
+
                           {/* Dropdown Menu */}
                           <div className="absolute right-0 top-full mt-2 w-52 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg shadow-2xl z-50 overflow-hidden">
                             <div className="py-1">
@@ -422,7 +428,7 @@ const Overview = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeployLatestCommit(project.deploymentId, project.id);
+                                  handleDeployLatestCommit(project.deploymentId, project.id, project.projectType);
                                 }}
                                 disabled={deployingProjectId === project.id}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
