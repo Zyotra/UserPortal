@@ -18,6 +18,7 @@ import {SiRedis} from "react-icons/si";
 import {MdCached} from "react-icons/md";
 import apiClient from "../../utils/apiClient.ts";
 import {STORAGE_LAYER_DEPOYMENT_URL} from "../../types.ts";
+import DashboardLoader from "./DashboardLoader";
 
 interface CacheServer {
     id: number | string;
@@ -274,18 +275,7 @@ const CacheMemory = () => {
 
     if (loading) {
         return(
-           <div className="min-h-screen flex items-center justify-center">
-               <div className="flex flex-col items-center gap-4">
-                   <div className="relative">
-                       <div className="w-16 h-16 border-4 border-[#333] rounded-full"></div>
-                       <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-red-500 rounded-full animate-spin"></div>
-                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                           <MdCached className="text-red-500 text-xl animate-pulse" />
-                       </div>
-                   </div>
-                   <p className="text-gray-400 text-sm">Loading cache servers...</p>
-               </div>
-           </div>
+           <DashboardLoader message="Loading Cache Servers" mode="inline" />
         )
     }
 
@@ -793,17 +783,17 @@ const CacheMemory = () => {
                         {/* Modal Content */}
                         <div className="p-6">
                             {actionLoading ? (
-                                <div className="flex flex-col items-center py-6">
-                                    <div className="relative mb-4">
-                                        <div className="w-12 h-12 border-4 border-[#333] rounded-full"></div>
-                                        <div className={`absolute top-0 left-0 w-12 h-12 border-4 border-transparent rounded-full animate-spin ${
-                                            confirmAction === 'delete' ? 'border-t-red-500' : confirmAction === 'start' ? 'border-t-green-500' : 'border-t-yellow-500'
-                                        }`}></div>
-                                    </div>
-                                    <p className="text-gray-400 text-sm">
-                                        {confirmAction === 'delete' ? 'Deleting Redis server...' : confirmAction === 'start' ? 'Starting Redis server...' : 'Stopping Redis server...'}
-                                    </p>
-                                </div>
+                                <DashboardLoader
+                                    message={`${
+                                        confirmAction === 'delete'
+                                            ? 'Deleting'
+                                            : confirmAction === 'start'
+                                            ? 'Starting'
+                                            : 'Stopping'
+                                    } ${actionTarget.cacheName}`}
+                                    mode="inline"
+                                    className="py-8"
+                                />
                             ) : actionMessage ? (
                                 <div className="space-y-4">
                                     <div className={`p-4 rounded-xl border ${

@@ -26,6 +26,7 @@ import {
 } from "../../types";
 import ConfirmationModal from "./ConfirmationModal";
 import VPSMachines from "./VPSMachines";
+import DashboardLoader from "./DashboardLoader";
 
 interface Database {
   id: number | string;
@@ -60,6 +61,7 @@ const Databases = () => {
   const [dbToDelete, setDbToDelete] = useState<Database | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [selectedDbForDetails, setSelectedDbForDetails] =
     useState<Database | null>(null);
@@ -490,7 +492,8 @@ const Databases = () => {
     }
   };
   const handleDelete = async () => {
-    if (!dbToDelete) return;
+    if (!dbToDelete || isDeleting) return;
+    setIsDeleting(true);
 
     try {
       // Use MySQL-specific endpoint if database type is MySQL
@@ -528,6 +531,8 @@ const Databases = () => {
       }
     } catch (error) {
       console.error("Error deleting database:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -619,15 +624,15 @@ const Databases = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-sm text-gray-400">Loading databases...</p>
-      </div>
+      <DashboardLoader message="Loading Databases" mode="inline" />
     );
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {isDeleting && (
+        <DashboardLoader message="Deleting Database" mode="overlay" />
+      )}
       {/* Controls */}
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="relative flex-1 max-w-xl w-full">
