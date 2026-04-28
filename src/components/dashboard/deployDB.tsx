@@ -220,102 +220,145 @@ const DeployDB = () => {
     <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12">
       {/* Loading Modal */}
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
-          <div className="bg-[#111] border border-[#333] rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
-            <div className="flex flex-col items-center text-center">
-              {/* Animated Spinner */}
-              <div className="relative mb-6">
-                <div className="w-20 h-20 border-4 border-[#333] rounded-full"></div>
-                <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <FiDatabase className="text-purple-500 text-2xl animate-pulse" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0c0f14] p-7 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500">Database</p>
+                <h3 className="text-lg font-semibold text-white">Deployment</h3>
+              </div>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-medium ${
+                  deploymentStatus === 'deploying'
+                    ? 'border-white/10 text-gray-300'
+                    : deploymentStatus === 'success'
+                    ? 'border-emerald-500/30 text-emerald-300'
+                    : 'border-rose-500/30 text-rose-300'
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    deploymentStatus === 'deploying'
+                      ? 'bg-gray-400'
+                      : deploymentStatus === 'success'
+                      ? 'bg-emerald-400'
+                      : 'bg-rose-400'
+                  }`}
+                />
+                {deploymentStatus === 'deploying'
+                  ? 'In progress'
+                  : deploymentStatus === 'success'
+                  ? 'Complete'
+                  : 'Failed'}
+              </span>
+            </div>
+
+            <div className="mt-6 flex items-center gap-4">
+              <div className="relative h-12 w-12">
+                <div className="absolute inset-0 rounded-full border border-white/10"></div>
+                {deploymentStatus === 'deploying' && (
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-slate-200 animate-spin"></div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {deploymentStatus === 'success' ? (
+                    <FiCheckCircle className="text-emerald-400 text-xl" />
+                  ) : deploymentStatus === 'failed' ? (
+                    <FiXCircle className="text-rose-400 text-xl" />
+                  ) : (
+                    <FiDatabase className="text-slate-200 text-xl" />
+                  )}
                 </div>
               </div>
+              <div className="flex-1">
+                <p className="text-xs text-gray-500">Current step</p>
+                <p className="text-sm font-medium text-white">
+                  {loadingMessage ||
+                    (deploymentStatus === 'deploying'
+                      ? 'Preparing deployment...'
+                      : deploymentStatus === 'success'
+                      ? 'Database ready.'
+                      : 'Deployment failed.')}
+                </p>
+              </div>
+            </div>
 
-              {/* Loading Message */}
-              <h3 className="text-xl font-bold text-white mb-2">
-                {deploymentStatus === 'deploying' ? 'Creating Database' : 
-                 deploymentStatus === 'success' ? 'Database Created!' : 
-                 'Creation Failed'}
-              </h3>
-              
-              <p className="text-gray-400 text-sm mb-6 min-h-[20px]">
-                {loadingMessage}
-              </p>
+            {deploymentStatus === 'deploying' && (
+              <div className="mt-5 h-1.5 w-full rounded-full bg-white/5">
+                <div
+                  className="h-1.5 rounded-full bg-slate-200/80 animate-pulse"
+                  style={{ width: '60%' }}
+                ></div>
+              </div>
+            )}
 
-              {/* Progress Indicator */}
-              {deploymentStatus === 'deploying' && (
-                <div className="w-full bg-[#222] rounded-full h-2 mb-6 overflow-hidden">
-                  <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full animate-pulse" style={{ width: '60%' }}></div>
-                </div>
-              )}
-
-              {/* Response Message */}
-              {responseMessage && (
-                <div className={`w-full p-4 rounded-xl mb-6 border ${
-                  responseMessage.type === 'success' 
-                    ? 'bg-green-500/10 border-green-500/30' 
-                    : 'bg-red-500/10 border-red-500/30'
-                } animate-in slide-in-from-bottom-2 duration-300`}>
-                  <div className="flex items-start gap-3">
-                    {responseMessage.type === 'success' ? (
-                      <FiCheckCircle className="text-green-500 text-xl flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <FiXCircle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
-                    )}
-                    <p className={`text-sm text-left ${
-                      responseMessage.type === 'success' ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {responseMessage.message}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              {responseMessage && (
-                <div className="flex gap-3 w-full">
+            {responseMessage && (
+              <div
+                className={`mt-6 w-full rounded-xl border p-4 ${
+                  responseMessage.type === 'success'
+                    ? 'border-emerald-500/20 bg-emerald-500/5'
+                    : 'border-rose-500/20 bg-rose-500/5'
+                } animate-in slide-in-from-bottom-2 duration-300`}
+              >
+                <div className="flex items-start gap-3">
                   {responseMessage.type === 'success' ? (
-                    <>
-                      <button
-                        onClick={() => {
-                          setLoading(false);
-                          setResponseMessage(null);
-                          setLoadingMessage('');
-                          setShowTerminal(true);
-                        }}
-                        className="flex-1 bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          setLoading(false);
-                          setResponseMessage(null);
-                          setLoadingMessage('');
-                          navigate('/dashboard');
-                        }}
-                        className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
-                      >
-                        Go to Dashboard
-                      </button>
-                    </>
+                    <FiCheckCircle className="text-emerald-400 text-lg flex-shrink-0 mt-0.5" />
                   ) : (
+                    <FiXCircle className="text-rose-400 text-lg flex-shrink-0 mt-0.5" />
+                  )}
+                  <p
+                    className={`text-sm ${
+                      responseMessage.type === 'success' ? 'text-emerald-200' : 'text-rose-200'
+                    }`}
+                  >
+                    {responseMessage.message}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {responseMessage && (
+              <div className="mt-6 flex gap-3">
+                {responseMessage.type === 'success' ? (
+                  <>
                     <button
                       onClick={() => {
                         setLoading(false);
                         setResponseMessage(null);
                         setLoadingMessage('');
-                        setDeploymentStatus('idle');
+                        setShowTerminal(true);
+                      }}
+                      className="flex-1 bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => {
+                        setLoading(false);
+                        setResponseMessage(null);
+                        setLoadingMessage('');
+                        navigate('/dashboard');
                       }}
                       className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
                     >
-                      Try Again
+                      Go to Dashboard
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setLoading(false);
+                      setResponseMessage(null);
+                      setLoadingMessage('');
+                      setDeploymentStatus('idle');
+                    }}
+                    className="flex-1 bg-[#333] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#444] transition-all"
+                  >
+                    Try Again
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
