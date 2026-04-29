@@ -1,4 +1,4 @@
-import { SiNodedotjs, SiExpress,SiReact,SiNextdotjs,SiVuedotjs,SiAngular,SiSvelte,SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker, SiBun, SiSpringboot } from 'react-icons/si';
+import { SiNodedotjs, SiExpress, SiReact, SiHtml5, SiPython, SiDjango, SiFlask, SiFastapi, SiRuby, SiPhp, SiGo, SiRust, SiDocker, SiBun, SiSpringboot } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
 export const AUTH_API_URL=import.meta.env.VITE_BACKEND_URL || "http://localhost:5050" as string;
 export const WEB_SERVICE_DEPLOYMENT_URL=import.meta.env.VITE_WEBSERVICE_DEPLOYMENT_URL ||"http://localhost:5053" as string;
@@ -21,10 +21,6 @@ export const Frameworks = [
   { value: 'docker', label: 'Docker', icon: SiDocker, color: 'text-blue-500' },
   { value: 'other', label: 'Other', icon: FiCode, color: 'text-gray-400' },
   { value: 'react', label: 'React', icon: SiReact, color: 'text-cyan-400' },
-  { value: 'nextjs', label: 'Next.js', icon: SiNextdotjs, color: 'text-white' },
-  { value: 'vue', label: 'Vue.js', icon: SiVuedotjs, color: 'text-green-500' },
-  { value: 'angular', label: 'Angular', icon: SiAngular, color: 'text-red-500' },
-  { value: 'svelte', label: 'Svelte', icon: SiSvelte, color: 'text-orange-500' },
   { value: 'html', label: 'HTML/CSS/JS', icon: SiHtml5, color: 'text-orange-600' }
 ];
 export const backendFrameworks = [

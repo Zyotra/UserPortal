@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiGithub, FiServer, FiBox, FiCommand, FiGlobe, FiTerminal, FiCheckCircle, FiXCircle, FiSearch, FiLayers } from 'react-icons/fi';
-import { SiReact, SiNextdotjs, SiVuedotjs, SiAngular, SiSvelte, SiHtml5 } from 'react-icons/si';
+import { SiReact, SiHtml5 } from 'react-icons/si';
 import toast from 'react-hot-toast';
 import apiClient from '../../utils/apiClient';
 import { useSocket } from '../../hooks/useSocket';
@@ -120,10 +120,6 @@ const DeployUI = () => {
 
   const frameworks = [
     { value: 'react', label: 'React', icon: SiReact, color: 'text-cyan-400' },
-    { value: 'nextjs', label: 'Next.js', icon: SiNextdotjs, color: 'text-white' },
-    { value: 'vue', label: 'Vue.js', icon: SiVuedotjs, color: 'text-green-500' },
-    { value: 'angular', label: 'Angular', icon: SiAngular, color: 'text-red-500' },
-    { value: 'svelte', label: 'Svelte', icon: SiSvelte, color: 'text-orange-500' },
     { value: 'html', label: 'HTML/CSS/JS', icon: SiHtml5, color: 'text-orange-600' },
   ];
 
